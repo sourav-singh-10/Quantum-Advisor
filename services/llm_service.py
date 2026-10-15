@@ -136,16 +136,3 @@ class LLMClient:
                                  prompt="ping", schema=Pong)
         return {"llmAvailable": result.value is not None, "model": result.model,
                 "latencyMs": result.latency_ms, "error": result.error}
-
-
-def ask_llm(prompt: str) -> str:
-    """Plain-text call used only by legacy/ until the switch-over; removed afterwards."""
-    llm = LLMClient()
-    if not llm.available:
-        return "AI reasoning not available: GEMINI_API_KEY is missing"
-    try:
-        response = llm._get_client().models.generate_content(model=llm.fast_model, contents=prompt)
-        return response.text or "AI reasoning not available"
-    except Exception as exc:
-        print("GEMINI ERROR:", exc)
-        return "AI reasoning not available"
