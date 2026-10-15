@@ -54,252 +54,48 @@ function switchPage(name) {
 }
 
 /* ================================================================
-   VERIFIED NSE PRICES  — March 2026
+   STOCK ANALYSIS — results always come from the backend agents
 ================================================================ */
-const PRICES = {
-  IOC:144.60, BPCL:285.50, ONGC:265.40, GAIL:170.00, PETRONET:225.00, HINDPETRO:290.00,
-  HDFCBANK:790.00, ICICIBANK:1255.00, SBIN:680.00, AXISBANK:1050.00,
-  KOTAKBANK:1950.00, INDUSINDBK:760.00, BANDHANBNK:155.00, FEDERALBNK:170.00,
-  TCS:2370.00, INFY:1235.00, WIPRO:189.00, HCLTECH:1345.00, TECHM:1380.00,
-  LTI:4200.00, LTIM:4200.00, MPHASIS:2100.00, COFORGE:7200.00,
-  MARUTI:11500.00, TATAMOTORS:680.00, 'M&M':2700.00, MM:2700.00,
-  'BAJAJ-AUTO':8500.00, BAJAJAUTO:8500.00, EICHERMOT:4900.00,
-  HEROMOTOCO:3900.00, TVSMOTOR:2200.00,
-  SUNPHARMA:1580.00, DRREDDY:1150.00, CIPLA:1430.00, DIVISLAB:4600.00,
-  BIOCON:310.00, AUROPHARMA:1180.00, LUPIN:1950.00,
-  HINDUNILVR:2300.00, ITC:395.00, NESTLEIND:2250.00, BRITANNIA:4800.00,
-  DABUR:510.00, MARICO:600.00, GODREJCP:1080.00,
-  TATASTEEL:135.00, HINDALCO:580.00, JSWSTEEL:980.00, VEDL:400.00,
-  NMDC:60.00, COALINDIA:375.00, SAIL:100.00,
-  LT:3250.00, ULTRACEMCO:10500.00, GRASIM:2600.00,
-  ADANIPORTS:1150.00, BHARTIARTL:1650.00, POWERGRID:290.00,
-  RELIANCE:1414.40, ADANIENT:2150.00,
-  DMART:4000.00, TRENT:5100.00, DLF:680.00, GODREJPROP:2100.00,
-  PRESTIGE:1400.00, NTPC:335.00, TATAPOWER:380.00, ADANIGREEN:940.00,
-  TITAN:3200.00, VOLTAS:1400.00, HAVELLS:1450.00, CROMPTON:360.00,
-  BAJFINANCE:850.00, BAJAJFINSV:1600.00,
-  HDFCLIFE:600.00, SBILIFE:1400.00, ICICIPRULI:580.00,
-  ASIANPAINT:2200.00, ZOMATO:210.00, PAYTM:850.00, NYKAA:140.00, IRCTC:780.00,
-  GOLDBEES:71.00, NIFTYBEES:240.00, BANKBEES:490.00,
-  AAPL:215.00, MSFT:385.00, GOOGL:165.00, NVDA:110.00,
-  TSLA:280.00, META:580.00, AMZN:190.00
-};
-const US_SET = new Set(['AAPL','MSFT','GOOGL','NVDA','TSLA','META','AMZN','NFLX','ORCL','ADBE','INTC','AMD','CRM','CSCO','IBM']);
-
-function lookupPrice(raw) {
-  const k = raw.toUpperCase().replace('.NS','').replace('.BO','');
-  const price = PRICES[k];
-  if (price) return { price, currency: US_SET.has(k) ? 'USD' : 'INR', known: true };
-  return { price: 500, currency: 'INR', known: false };
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-/* ================================================================
-   STOCK CHARACTERISTICS
-================================================================ */
-const STOCK_DATA = {
-  IOC:[20,55,22,14.0,1.1,6.3], BPCL:[18,52,28,16.0,1.0,9.5], ONGC:[22,58,25,18.0,0.4,7.5],
-  GAIL:[16,50,22,12.0,0.6,12.0], HINDPETRO:[14,48,28,10.0,1.2,11.0], RELIANCE:[18,52,20,10.0,0.5,19.3],
-  HDFCBANK:[12,40,18,15.0,7.5,15.5], ICICIBANK:[15,48,20,17.0,6.8,17.9], SBIN:[14,46,25,18.0,8.0,8.5],
-  AXISBANK:[13,44,22,14.0,6.5,16.0], KOTAKBANK:[11,42,18,16.0,5.8,22.0], INDUSINDBK:[10,36,28,12.0,5.0,12.0],
-  TCS:[10,35,22,45.0,0.1,18.3], INFY:[10,38,22,32.0,0.1,20.0], WIPRO:[8,33,25,15.0,0.2,17.0],
-  HCLTECH:[15,48,22,25.0,0.1,19.0], TECHM:[12,44,24,18.0,0.1,22.0],
-  MARUTI:[16,50,22,18.0,0.2,26.0], TATAMOTORS:[14,46,28,12.0,1.5,18.0],
-  BAJFINANCE:[10,35,28,22.0,3.5,25.0], BHARTIARTL:[22,58,20,30.0,2.0,28.0],
-  TATASTEEL:[12,44,30,10.0,1.5,15.0], HINDALCO:[18,55,28,14.0,0.8,12.0],
-  NTPC:[14,48,20,12.0,1.8,14.0], TATAPOWER:[15,50,25,10.0,2.0,18.0],
-  SUNPHARMA:[16,52,22,18.0,0.2,24.0], DRREDDY:[14,48,20,20.0,0.1,22.0], CIPLA:[15,50,22,16.0,0.2,20.0],
-  GOLDBEES:[18,55,12,0,0,0], NIFTYBEES:[15,50,14,0,0,0], BANKBEES:[12,44,18,0,0,0],
-  _DEFAULT:[15,50,25,14.0,1.0,18.0],
-};
-const BANKS = new Set(['HDFCBANK','ICICIBANK','SBIN','AXISBANK','KOTAKBANK','BANDHANBNK','FEDERALBNK','INDUSINDBK']);
-const ETFS  = new Set(['GOLDBEES','NIFTYBEES','BANKBEES']);
-
-/* ================================================================
-   ANALYSIS ENGINE  (original — untouched)
-================================================================ */
-function runEngine(ticker, portfolio, experience, riskAppetite, age, horizon) {
-  const tk = ticker.toUpperCase().replace('.NS','').replace('.BO','');
-  const { price, currency, known } = lookupPrice(tk);
-  const priceINR = currency === 'USD' ? price * 84 : price;
-
-  let riskCapacity = 50;
-  if      (age < 30) riskCapacity += 25;
-  else if (age < 40) riskCapacity += 15;
-  else if (age > 60) riskCapacity -= 25;
-  if (horizon === 'Long-term')              riskCapacity += 20;
-  else if (horizon === 'Short-term')        riskCapacity -= 15;
-  if (riskAppetite === 'Aggressive')        riskCapacity += 15;
-  else if (riskAppetite === 'Conservative') riskCapacity -= 15;
-  if (experience === 'Experienced')         riskCapacity += 15;
-  else if (experience === 'Beginner')       riskCapacity -= 5;
-  riskCapacity = clamp(riskCapacity, 0, 100);
-
-  const sd = STOCK_DATA[tk] || STOCK_DATA['_DEFAULT'];
-  const [trendScore, rsi, vol, roe, de, pe] = sd;
-
-  let healthScore = 50;
-  if (ETFS.has(tk)) {
-    healthScore = 65;
-  } else {
-    if      (roe > 25) healthScore += 30;
-    else if (roe > 12) healthScore += 20;
-    if (!BANKS.has(tk)) {
-      if      (de < 0.5) healthScore += 20;
-      else if (de < 1.0) healthScore += 10;
-    } else { healthScore += 15; }
-  }
-
-  let riskScore = 0;
-  const riskFactors = [];
-  if      (vol > 28) { riskScore += 25; riskFactors.push(`⚠️ High volatility (${vol}%)`); }
-  else if (vol > 20) { riskScore += 13; riskFactors.push(`〰️ Moderate volatility (${vol}%)`); }
-  else               { riskScore +=  5; riskFactors.push(`✓ Low volatility (${vol}%)`); }
-
-  if      (healthScore < 55) { riskScore += 20; riskFactors.push('⚠️ Weak fundamentals'); }
-  else if (healthScore < 70) { riskScore +=  8; riskFactors.push('✓ Adequate fundamentals'); }
-  else                       { riskScore +=  5; riskFactors.push('✓ Healthy fundamentals'); }
-
-  if      (rsi > 70) { riskScore += 10; riskFactors.push(`⚠️ Overbought (RSI ${rsi})`); }
-  else if (rsi < 35) { riskScore +=  8; riskFactors.push(`📉 Oversold RSI ${rsi} — potential bounce`); }
-  else               { riskScore +=  3; riskFactors.push(`✓ RSI in range (${rsi})`); }
-
-  riskScore = clamp(riskScore, 0, 100);
-  const riskLevel = riskScore >= 45 ? 'High' : riskScore >= 25 ? 'Medium' : 'Low-Medium';
-  const riskClass = riskScore >= 45 ? 'high' : riskScore >= 25 ? 'medium' : 'low';
-
-  if (experience === 'Beginner') {
-    const sip = Math.min(portfolio * 0.15, 10000);
-    return build({
-      tk, priceINR, known, riskCapacity, riskScore, riskLevel, riskClass, riskFactors,
-      trendScore, rsi, vol, healthScore, pe,
-      userType:'Beginner Investor', riskProfile:riskAppetite,
-      recommendation:'Start SIP', recClass:'hold', buyScore:0,
-      targetPrice1:null, targetPrice2:null, stopLoss:null,
-      portfolioAdvice:[`💰 Suggested monthly SIP: ₹${fmtInt(sip)}`, '📊 Consider Nifty 50 Index Fund'],
-      reasoning:['✅ SIP recommended for beginners','✅ Rupee cost averaging reduces entry risk','✅ Index funds lower single-stock risk'],
-      expectedRange:'Returns: 12–15% CAGR (historical)'
-    });
-  }
-
-  let buyScore = 0;
-  const reasoning = [];
-  buyScore += trendScore / 2;
-  reasoning.push(trendScore >= 18 ? `✅ Strong uptrend (+${trendScore})` :
-                 trendScore <  12 ? `📉 Weak trend (+${trendScore})` :
-                                    `〰️ Sideways trend (+${trendScore})`);
-  buyScore += (healthScore - 50) / 2;
-  reasoning.push(healthScore >= 70 ? `✅ Strong fundamentals (score: ${healthScore})` :
-                                     `✓ Solid fundamentals (score: ${healthScore})`);
-  if (ETFS.has(tk)) { buyScore += 10; reasoning.push('✅ Diversified ETF — lower single-stock risk'); }
-  else if (pe > 0 && pe < 12)  { buyScore += 15; reasoning.push(`✅ Attractively valued (P/E: ${pe}x)`); }
-  else if (pe >= 12 && pe < 22){ buyScore +=  5; reasoning.push(`〰️ Fair valuation (P/E: ${pe}x)`); }
-  else if (pe >= 22)           { reasoning.push(`⚠️ Premium valuation (P/E: ${pe}x)`); }
-  if (rsi < 38) { buyScore += 10; reasoning.push(`📉 Oversold RSI ${rsi} — potential bounce`); }
-
-  let recommendation, recClass, alloc;
-  if      (buyScore >= 35) { recommendation='BUY';          recClass='buy';  alloc=8; }
-  else if (buyScore >= 20) { recommendation='ACCUMULATE';   recClass='hold'; alloc=5; }
-  else                     { recommendation='HOLD / WATCH'; recClass='hold'; alloc=3; }
-
-  const tm1 = recClass==='buy' ? 1.15 : 1.10;
-  const tm2 = recClass==='buy' ? 1.28 : 1.18;
-  const slm = recClass==='buy' ? 0.92 : 0.95;
-
-  let portfolioAdvice;
-  if (priceINR > portfolio) {
-    portfolioAdvice = [
-      `⚠️ Stock price ₹${fmt(priceINR)} exceeds your ₹${fmtInt(portfolio)} portfolio`,
-      '💡 Increase capital or choose a lower-priced stock'
-    ];
-  } else {
-    const posVal = portfolio * (alloc / 100);
-    const units  = Math.max(1, Math.floor(posVal / priceINR));
-    const actual = units * priceINR;
-    portfolioAdvice = [
-      `💰 Suggested position: ₹${fmtInt(actual)}`,
-      `📊 Buy ${units} unit${units !== 1 ? 's' : ''} @ ₹${fmt(priceINR)}`
-    ];
-  }
-
-  return build({
-    tk, priceINR, known, riskCapacity, riskScore, riskLevel, riskClass, riskFactors,
-    trendScore, rsi, vol, healthScore, pe,
-    userType: experience==='Experienced' ? 'Experienced Investor' : 'Intermediate Investor',
-    riskProfile: riskAppetite,
-    recommendation, recClass,
-    buyScore: Math.round(buyScore * 10) / 10,
-    targetPrice1: +(priceINR * tm1).toFixed(2),
-    targetPrice2: +(priceINR * tm2).toFixed(2),
-    stopLoss:     +(priceINR * slm).toFixed(2),
-    portfolioAdvice, reasoning,
-    expectedRange: `Range: ₹${fmt(priceINR*(1-vol/100))} – ₹${fmt(priceINR*(1+vol/100))}`
-  });
+function showError(message, details) {
+  document.getElementById('resultsContent').innerHTML = `<div class="fade-in" style="color:var(--sell)">
+    ⚠ ${esc(message)}
+    ${(details||[]).length ? '<ul>' + details.map(d => `<li>${esc(d.field)}: ${esc(d.message)}</li>`).join('') + '</ul>' : ''}
+  </div>`;
+  document.getElementById('resultsContent').style.display = 'block';
 }
 
-function build(o) {
-  return {
-    ticker:            o.tk,
-    currentPrice:      o.priceINR,
-    priceDisplay:      `₹${fmt(o.priceINR)} per share`,
-    isKnown:           o.known,
-    userType:          o.userType,
-    riskProfile:       o.riskProfile,
-    riskCapacityScore: o.riskCapacity,
-    riskScore:         o.riskScore,
-    riskLevel:         o.riskLevel,
-    riskClass:         o.riskClass,
-    riskFactors:       o.riskFactors,
-    trend:             o.trendScore>=18 ? 'Uptrend' : o.trendScore<12 ? 'Downtrend' : 'Sideways',
-    volatility:        o.vol>28 ? 'High' : o.vol>20 ? 'Moderate' : 'Low',
-    financialHealth:   o.healthScore>=80 ? 'Excellent' : o.healthScore>=65 ? 'Good' : 'Fair',
-    pe:                o.pe,
-    recommendation:    o.recommendation,
-    recommendationClass: o.recClass,
-    confidence:        (o.buyScore||0) >= 20 ? 'Moderate' : 'Low',
-    buyScore:          o.buyScore || 0,
-    reasoning:         o.reasoning,
-    targetPrice1:      o.targetPrice1,
-    targetPrice2:      o.targetPrice2,
-    stopLoss:          o.stopLoss,
-    portfolioAdvice:   o.portfolioAdvice,
-    expectedRange:     o.expectedRange,
-  };
-}
-
-/* ================================================================
-   STOCK ANALYSIS TRIGGER
-================================================================ */
 async function runAnalysis() {
-  const ticker     = document.getElementById('ticker').value.trim().toUpperCase();
-  const portfolio  = parseFloat(document.getElementById('portfolio').value) || 50000;
-  const horizon    = document.getElementById('horizon').value;
-  const risk       = document.getElementById('risk').value;
-  const experience = document.getElementById('experience').value;
-  const age        = parseInt(document.getElementById('age').value) || 30;
-  if (!ticker) { alert('Please enter a ticker'); return; }
+  const body = {
+    ticker:         document.getElementById('ticker').value.trim().toUpperCase(),
+    portfolioValue: parseFloat(document.getElementById('portfolio').value) || 50000,
+    timeHorizon:    document.getElementById('horizon').value,
+    riskAppetite:   document.getElementById('risk').value,
+    experience:     document.getElementById('experience').value,
+    age:            parseInt(document.getElementById('age').value) || 30,
+  };
+  if (!body.ticker) { showError('Please enter an NSE ticker, e.g. RELIANCE.'); return; }
 
-  setLoading(true, 'Running multi-agent analysis…');
+  setLoading(true, 'Agents are analysing… this can take up to a minute');
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('resultsContent').style.display = 'none';
   document.getElementById('runBtn').disabled = true;
-
   try {
     const r = await fetch('/api/analyze', {
-      method:'POST', credentials:'include',
-      headers:{'Content-Type':'application/json'},
-      signal: AbortSignal.timeout(5000),
-      body: JSON.stringify({ ticker, portfolioValue:portfolio, timeHorizon:horizon, riskAppetite:risk, experience, age })
+      method: 'POST', credentials: 'include',
+      headers: {'Content-Type': 'application/json'},
+      signal: AbortSignal.timeout(180000),
+      body: JSON.stringify(body),
     });
-    if (r.status === 401) { window.location.href='login.html'; return; }
-    if (!r.ok) throw new Error('HTTP '+r.status);
-    const backendData = await r.json();
-    if (backendData.error) throw new Error(backendData.error);
-    renderResults(backendData);
-  } catch(e) {
-    // Fallback: use local engine if backend unreachable
-    console.warn('Backend unavailable, using local engine:', e.message);
-    const local = runEngine(ticker, portfolio, experience, risk, age, horizon);
-    renderResults(local);
+    if (r.status === 401) { window.location.href = 'login.html'; return; }
+    const data = await r.json();
+    if (data.error) { showError(data.error, data.details); return; }
+    renderResults(data);
+  } catch (e) {
+    showError('Could not reach the analysis service: ' + e.message);
   } finally {
     setLoading(false);
     document.getElementById('runBtn').disabled = false;
@@ -343,13 +139,12 @@ function renderResults(d) {
   <div class="fade-in">
     <div id="pdf-cover">
       <h1>QuantumAdvisor — Investment Analysis</h1>
-      <p>${d.ticker} · ${dateStr} · NSE Verified Prices</p>
+      <p>${d.ticker} · ${dateStr} · multi-agent analysis</p>
     </div>
     <div class="results-header">
       <div class="rh-left">
         <span class="results-title">Analysis</span>
         <span class="ticker-badge">${d.ticker}</span>
-        ${d.isKnown ? '<span class="verified-badge">✓ VERIFIED</span>' : ''}
       </div>
       <button class="download-btn" onclick="downloadPDF()">⬇ Download PDF</button>
     </div>
@@ -358,7 +153,7 @@ function renderResults(d) {
         <div class="price-label">Current Market Price</div>
         <div class="price-amount">${priceDisp}</div>
         <div class="price-ticker">${d.ticker} · NSE India</div>
-        <div class="price-source">Verified · ${dateStr}</div>
+        <div class="price-source">Source: ${esc(d.priceSource || '—')} · ${dateStr}</div>
       </div>
       <div class="rec-badge ${recClass}">
         <div class="rec-label">Recommendation</div>
