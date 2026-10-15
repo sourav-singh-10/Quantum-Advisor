@@ -10,7 +10,7 @@ from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
 
 from legacy.orchestrator import Orchestrator
-from agents.portfolio_analyzer import PortfolioAnalyzer
+from tools.portfolio_analyzer import PortfolioAnalyzer
 
 # ─────────────────────────────────────────────
 #  PATHS
