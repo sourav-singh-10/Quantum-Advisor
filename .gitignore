@@ -1,6 +1,15 @@
+# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
-users.db
-.env
+.venv/
 venv/
+
+# Secrets and local data
+.env
+users.db
+*.db
+
+# Runtime logs (curated evidence lives in docs/traces/)
+logs/
+test_report_*.html
