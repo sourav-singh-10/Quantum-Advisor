@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnalyzeResponse",
+  "description": "Successful response of POST /api/analyze (HTTP 200). On failure the body is {error, errors?, meta, trace} with HTTP 400/502.",
+  "type": "object",
+  "required": ["ticker", "currentPrice", "priceSource", "trend", "rsi", "volatility",
+               "userType", "riskCapacityScore", "maxPositionPct",
+               "financialHealth", "newsSentiment",
+               "riskScore", "riskLevel", "riskFactors", "suitabilityGap",
+               "recommendation", "confidence", "decidedBy", "targetPrice1", "targetPrice2",
+               "stopLoss", "reasoning", "portfolioAdvice", "positionSizing", "expectedRange",
+               "aiReport", "debate", "meta", "trace"],
+  "properties": {
+    "ticker": {"type": "string"},
+    "currentPrice": {"type": "number"},
+    "priceDisplay": {"type": "string"},
+    "priceSource": {"enum": ["marketstack", "alphavantage", "yfinance"]},
+    "sourcesTried": {"type": "array", "items": {"type": "string"}},
+    "trend": {"enum": ["Uptrend", "Downtrend", "Sideways"]},
+    "rsi": {"type": "number", "minimum": 0, "maximum": 100},
+    "volatility": {"type": "number", "description": "Std-dev of daily returns, %"},
+    "change1mPct": {"type": "number"},
+    "marketSummary": {"type": "string"},
+    "momentum": {"enum": ["Strong up", "Up", "Flat", "Down", "Strong down"]},
+    "dataQuality": {"enum": ["Good", "Limited", "Poor"]},
+
+    "userType": {"type": "string"},
+    "riskCapacityScore": {"type": "integer", "minimum": 0, "maximum": 100},
+    "profileSummary": {"type": "string"},
+    "maxPositionPct": {"type": "number", "minimum": 1, "maximum": 15},
+    "constraints": {"type": "array", "items": {"type": "string"}},
+
+    "pe": {"type": ["number", "null"]},
+    "roe": {"type": ["number", "null"]},
+    "de": {"type": ["number", "null"]},
+    "healthScore": {"type": ["integer", "null"]},
+    "financialHealth": {"enum": ["Strong", "Stable", "Weak", "Unknown", "Not analysed"]},
+    "fundamentalsSummary": {"type": "string"},
+
+    "newsSentiment": {"enum": ["Positive", "Neutral", "Negative", "Not analysed"]},
+    "sentimentScore": {"enum": [-1, 0, 1]},
+    "topHeadlines": {"type": "array", "items": {"type": "string"}},
+    "materialHeadlines": {"type": "array", "items": {"type": "string"}},
+    "newsSummary": {"type": "string"},
+
+    "riskScore": {"type": "integer", "minimum": 5, "maximum": 100},
+    "riskLevel": {"enum": ["Low-Medium", "Medium", "High"]},
+    "riskFactors": {"type": "array", "items": {"type": "string"}},
+    "suitabilityGap": {"type": "integer", "description": "Positive = riskier than this investor can comfortably hold"},
+    "riskSummary": {"type": "string"},
+
+    "recommendation": {"enum": ["BUY", "HOLD", "SELL"]},
+    "recommendationClass": {"enum": ["buy", "hold", "sell"]},
+    "confidence": {"enum": ["Low", "Moderate", "High"]},
+    "decidedBy": {"type": "string"},
+    "buyScore": {"type": "integer", "minimum": 0, "maximum": 100},
+    "targetPrice1": {"type": "number"},
+    "targetPrice2": {"type": "number"},
+    "stopLoss": {"type": "number"},
+    "reasoning": {"type": "array", "items": {"type": "string"}},
+
+    "portfolioAdvice": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "positionSizing": {
+      "type": "object",
+      "required": ["positionPct", "units", "amount"],
+      "properties": {"positionPct": {"type": "number"}, "units": {"type": "integer"},
+                     "amount": {"type": "number"}}
+    },
+    "expectedRange": {"type": "string"},
+    "aiReport": {"type": "string"},
+
+    "debate": {
+      "type": "array", "minItems": 1, "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["round", "draft", "critique"],
+        "properties": {
+          "round": {"type": "integer"},
+          "draft": {"type": "object", "required": ["recommendation", "confidence", "rationale", "responses"]},
+          "critique": {
+            "type": "object",
+            "required": ["verdict", "reasoning", "objections"],
+            "properties": {
+              "verdict": {"enum": ["approve", "revise", "veto"]},
+              "objections": {"type": "array", "items": {
+                "type": "object", "required": ["id", "text", "severity"],
+                "properties": {"severity": {"enum": ["minor", "major", "blocking"]}}}}
+            }
+          }
+        }
+      }
+    },
+    "plan": {"type": "object"},
+    "lastRun": {"type": ["object", "null"]},
+    "meta": {
+      "type": "object",
+      "required": ["runId", "status", "llmAvailable", "llmCalls", "degradedAgents", "failedAgents",
+                   "durationMs", "replans", "debateRounds"],
+      "properties": {
+        "status": {"enum": ["ok", "degraded", "failed"]},
+        "degradedAgents": {"type": "array", "items": {"type": "string"}},
+        "failedAgents": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "trace": {"type": "array", "items": {"$ref": "trace_event.schema.json"}}
+  }
+}

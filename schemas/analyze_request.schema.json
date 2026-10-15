@@ -1,0 +1,74 @@
+{
+  "properties": {
+    "ticker": {
+      "title": "Ticker",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9&\\-]{1,20}(\\.(NS|BO|NSE|BSE))?$",
+      "description": "NSE symbol; upper-cased and .NS/.BO suffix removed by the server"
+    },
+    "age": {
+      "default": 30,
+      "maximum": 100,
+      "minimum": 18,
+      "title": "Age",
+      "type": "integer"
+    },
+    "experience": {
+      "default": "Beginner",
+      "enum": [
+        "Beginner",
+        "Intermediate",
+        "Experienced"
+      ],
+      "title": "Experience",
+      "type": "string"
+    },
+    "riskAppetite": {
+      "default": "Moderate",
+      "enum": [
+        "Conservative",
+        "Moderate",
+        "Aggressive"
+      ],
+      "title": "Riskappetite",
+      "type": "string"
+    },
+    "portfolioValue": {
+      "default": 50000,
+      "exclusiveMinimum": 0,
+      "maximum": 100000000000.0,
+      "title": "Portfoliovalue",
+      "type": "number"
+    },
+    "timeHorizon": {
+      "default": "Medium-term",
+      "enum": [
+        "Short-term",
+        "Medium-term",
+        "Long-term"
+      ],
+      "title": "Timehorizon",
+      "type": "string"
+    },
+    "goal": {
+      "anyOf": [
+        {
+          "maxLength": 300,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Goal"
+    }
+  },
+  "required": [
+    "ticker"
+  ],
+  "title": "AnalyzeRequest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Body of POST /api/analyze and POST /api/analyze/stream"
+}
