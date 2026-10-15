@@ -1,0 +1,13 @@
+{"timestamp": "2026-10-11T12:09:36.973468+00:00", "ticker": "BAJAJ", "agent": "Orchestrator", "event": "run_started", "details": {}}
+{"timestamp": "2026-10-11T12:09:36.975489+00:00", "ticker": "BAJAJ", "agent": "UserAgent", "event": "completed", "details": {}}
+{"timestamp": "2026-10-11T12:17:42.862615+00:00", "ticker": "RELIANCE", "agent": "Orchestrator", "event": "run_started", "details": {}}
+{"timestamp": "2026-10-11T12:17:42.864418+00:00", "ticker": "RELIANCE", "agent": "UserAgent", "event": "completed", "details": {}}
+{"timestamp": "2026-10-11T12:17:43.626290+00:00", "ticker": "RELIANCE", "agent": "MarketAgent", "event": "completed", "details": {"trend": "Downtrend"}}
+{"timestamp": "2026-10-11T12:17:43.627291+00:00", "ticker": "RELIANCE", "agent": "FundamentalsAgent", "event": "completed", "details": {}}
+{"timestamp": "2026-10-11T12:17:43.999662+00:00", "ticker": "RELIANCE", "agent": "NewsSentimentAgent", "event": "completed", "details": {"newsSentiment": "Positive"}}
+{"timestamp": "2026-10-11T12:17:43.999662+00:00", "ticker": "RELIANCE", "agent": "RiskAgent", "event": "risk_assessed", "details": {"riskScore": 24, "riskLevel": "Medium"}}
+{"timestamp": "2026-10-11T12:17:44.001671+00:00", "ticker": "RELIANCE", "agent": "StrategyAgent", "event": "initial_recommendation", "details": {"recommendation": "BUY"}}
+{"timestamp": "2026-10-11T12:17:44.003669+00:00", "ticker": "RELIANCE", "agent": "RiskAgent", "event": "strategy_reviewed", "details": {"needsRevision": false, "reason": "No risk-based revision required."}}
+{"timestamp": "2026-10-11T12:17:44.004669+00:00", "ticker": "RELIANCE", "agent": "PortfolioAgent", "event": "completed", "details": {}}
+{"timestamp": "2026-10-11T12:17:44.006672+00:00", "ticker": "RELIANCE", "agent": "ReportAgent", "event": "completed", "details": {}}
+{"timestamp": "2026-10-11T12:17:44.007668+00:00", "ticker": "RELIANCE", "agent": "Orchestrator", "event": "run_completed", "details": {}}

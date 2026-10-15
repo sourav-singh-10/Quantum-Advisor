@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — QuantumAdvisor</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0c10; --surface:#111318; --surface2:#191d26; --border:#232735;
+    --accent:#00e5be; --accent2:#7c6ef5; --text:#e8eaf0; --muted:#6b7280;
+    --sell:#ff4f6a; --font:'Space Grotesk',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(124,110,245,.09) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 90%, rgba(0,229,190,.07) 0%, transparent 55%);
+  }
+  .auth-card {
+    width:100%; max-width:420px; background:var(--surface);
+    border:1px solid var(--border); border-radius:18px; padding:42px 38px;
+    box-shadow:0 24px 64px rgba(0,0,0,.45);
+    animation:slideUp .4s ease both;
+  }
+  @keyframes slideUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+  .brand { display:flex; align-items:center; gap:10px; margin-bottom:32px; }
+  .logo-dot { width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 14px var(--accent); flex-shrink:0; }
+  .brand-name { font-size:1.05rem; font-weight:700; letter-spacing:.05em; }
+  .auth-title { font-size:1.45rem; font-weight:700; margin-bottom:5px; }
+  .auth-sub { font-size:.82rem; color:var(--muted); margin-bottom:28px; }
+  .field { margin-bottom:18px; }
+  .field label { display:block; font-size:.72rem; font-weight:600; color:#a0a8bf; margin-bottom:7px; text-transform:uppercase; letter-spacing:.07em; }
+  .field input {
+    width:100%; background:var(--surface2); border:1px solid var(--border);
+    border-radius:9px; color:var(--text); font-family:var(--font); font-size:.9rem;
+    padding:12px 14px; outline:none; transition:border-color .2s;
+  }
+  .field input:focus { border-color:var(--accent2); }
+  .btn {
+    width:100%; padding:13px; background:linear-gradient(135deg,var(--accent2),var(--accent));
+    border:none; border-radius:10px; color:#fff; font-family:var(--font);
+    font-size:.93rem; font-weight:600; cursor:pointer; margin-top:4px;
+    transition:opacity .2s, transform .1s; display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn:hover { opacity:.88; } .btn:active { transform:scale(.98); } .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .switch-link { text-align:center; margin-top:22px; font-size:.82rem; color:var(--muted); }
+  .switch-link a { color:var(--accent); text-decoration:none; font-weight:600; }
+  .switch-link a:hover { text-decoration:underline; }
+  .error-msg {
+    background:rgba(255,79,106,.1); border:1px solid rgba(255,79,106,.35);
+    border-radius:8px; padding:10px 14px; font-size:.8rem; color:#ff7a90;
+    margin-bottom:18px; display:none;
+  }
+  .spinner { width:18px; height:18px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; display:none; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="auth-card">
+  <div class="brand">
+    <div class="logo-dot"></div>
+    <span class="brand-name">QuantumAdvisor</span>
+  </div>
+  <div class="auth-title">Welcome back</div>
+  <div class="auth-sub">Sign in to access your investment dashboard</div>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="field">
+    <label>Email address</label>
+    <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+  </div>
+  <div class="field">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+  </div>
+
+  <button class="btn" id="loginBtn" onclick="doLogin()">
+    <div class="spinner" id="spin"></div>
+    <span id="btnLabel">Sign In →</span>
+  </button>
+
+  <div class="switch-link">Don't have an account? <a href="signup.html">Create one</a></div>
+</div>
+
+<script>
+  // If already logged in, skip to app
+  fetch('/me',{credentials:'include'})
+    .then(r=>r.json())
+    .then(d=>{ if(d.loggedIn) window.location.href='index.html'; })
+    .catch(()=>{});
+
+  document.getElementById('password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  async function doLogin() {
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errEl    = document.getElementById('errorMsg');
+    errEl.style.display = 'none';
+
+    if (!email || !password) {
+      showErr('Please enter your email and password.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch('/login', {
+        method:'POST', credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) { showErr(data.error || 'Login failed.'); return; }
+      window.location.href = 'index.html';
+    } catch(e) {
+      showErr('Could not connect to server. Is Flask running?');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function showErr(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function setLoading(on) {
+    document.getElementById('loginBtn').disabled = on;
+    document.getElementById('spin').style.display = on ? 'block' : 'none';
+    document.getElementById('btnLabel').textContent = on ? 'Signing in…' : 'Sign In →';
+  }
+</script>
+</body>
+</html>

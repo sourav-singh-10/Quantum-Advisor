@@ -1,0 +1,5 @@
+import os
+
+MARKETSTACK_API_KEY = os.getenv("MARKETSTACK_API_KEY", "")
+ALPHAVANTAGE_API_KEY = os.getenv("ALPHAVANTAGE_API_KEY", "")
+NEWS_API_KEY = os.getenv("NEWS_API_KEY", "")
