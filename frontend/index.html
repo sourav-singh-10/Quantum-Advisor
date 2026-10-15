@@ -61,7 +61,7 @@
       <div class="field">
         <label>📈 Stock Ticker (NSE Symbol)</label>
         <input type="text" id="ticker" value="RELIANCE" oninput="this.value=this.value.toUpperCase()">
-        <div class="hint">E.g. RELIANCE, TCS, HDFCBANK, ONGC, GOLDBEES</div>
+        <div class="hint">Any NSE symbol, e.g. RELIANCE, TCS, HDFCBANK</div>
       </div>
       <div class="field">
         <label>💰 Investment Amount (₹)</label>
@@ -102,6 +102,11 @@
         <label>🎂 Your Age</label>
         <input type="number" id="age" value="30" min="18" max="100">
       </div>
+      <div class="field">
+        <label>🎯 Your Goal (optional)</label>
+        <textarea id="goal" rows="2" maxlength="300" placeholder="e.g. Saving for a house in 3 years"></textarea>
+        <div class="hint">The Profile agent turns this into constraints</div>
+      </div>
       <button class="run-btn" id="runBtn" onclick="runAnalysis()">
         <span>⚡</span> Run AI Analysis
       </button>
@@ -112,6 +117,7 @@
         <div class="empty-icon">📊</div>
         <p>Enter a stock ticker and click <strong>Run AI Analysis</strong> to get your personalised report.</p>
       </div>
+      <div id="agentFeed" class="agent-feed" style="display:none"></div>
       <div id="resultsContent" style="display:none"></div>
     </div>
   </div>

@@ -7,13 +7,13 @@ let currentUserEmail = null;
   try {
     const res = await fetch('/me', { credentials: 'include' });
     const data = await res.json();
-    if (!data.loggedIn) {
+    if (!data.loggedIn && data.loginRequired !== false) {
       window.location.href = 'login.html';
       return;
     }
-    currentUserEmail = data.email;
-    document.getElementById('profileEmail').textContent = data.email;
-    document.getElementById('drawerEmail').textContent  = data.email;
+    currentUserEmail = data.email || 'Guest';
+    document.getElementById('profileEmail').textContent = currentUserEmail;
+    document.getElementById('drawerEmail').textContent  = currentUserEmail;
   } catch(e) {
     window.location.href = 'login.html';
   }
@@ -54,51 +54,158 @@ function switchPage(name) {
 }
 
 /* ================================================================
-   STOCK ANALYSIS — results always come from the backend agents
+   STOCK ANALYSIS — streamed live from the agents
+   POST /api/analyze/stream returns Server-Sent Events:
+     start  {runId}            once
+     trace  {from,to,type,...} one per agent message
+     result {...}              once, the final analysis
 ================================================================ */
+const AGENT_ICONS = {
+  User:'🧑', Planner:'🧭', ProfileAgent:'👤', MarketAnalyst:'📈', FundamentalsAnalyst:'🏢',
+  NewsAnalyst:'📰', RiskManager:'🛡️', StrategyAgent:'🎯', PortfolioAgent:'💼',
+  ReportAgent:'📄', memory:'🧠', team:'👥'
+};
+const TYPE_LABEL = {
+  request:'request', plan:'plan', task:'task', tool_call:'tool call', tool_result:'tool result',
+  result:'result', error:'error', replan:'re-plan', assessment:'assessment', draft:'draft',
+  critique:'critique', arbitration:'arbitration', decision:'decision', final:'final', memory:'memory'
+};
+
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function showError(message, details) {
-  document.getElementById('resultsContent').innerHTML = `<div class="fade-in" style="color:var(--sell)">
-    ⚠ ${esc(message)}
-    ${(details||[]).length ? '<ul>' + details.map(d => `<li>${esc(d.field)}: ${esc(d.message)}</li>`).join('') + '</ul>' : ''}
-  </div>`;
-  document.getElementById('resultsContent').style.display = 'block';
+function describeEvent(e) {
+  const p = e.payload || {};
+  switch (e.type) {
+    case 'request':     return `Analyse ${p.ticker} for a ${p.experience} investor (${p.riskAppetite}, ${p.timeHorizon})`;
+    case 'plan':        return `${p.reasoning} → ${(p.tasks||[]).map(t => t.agent).join(', ')}`;
+    case 'task':        return p.instruction;
+    case 'tool_call':   return `${e.to.replace('tool:','')}(${p.argument ?? ''})${p.thought && p.thought !== 'default order' ? ' — ' + p.thought : ''}`;
+    case 'tool_result': return p.ok ? (p.summary || Object.entries(p).filter(([k,v]) => k !== 'ok' && v !== null && typeof v !== 'object').slice(0,6).map(([k,v]) => `${k}: ${v}`).join(' · ')) : `FAILED: ${p.error}`;
+    case 'result':      return Object.entries(p).filter(([k,v]) => v !== null && typeof v !== 'object').slice(0,5).map(([k,v]) => `${k}: ${v}`).join(' · ');
+    case 'error':       return p.error;
+    case 'replan':      return p.instruction;
+    case 'assessment':  return `${p.action.toUpperCase()} — ${p.reasoning} (max confidence ${p.confidence_cap})`;
+    case 'draft':       return `${p.recommendation} (${p.confidence}) — ${(p.rationale||[]).join('; ')}${(p.responses||[]).length ? ' | answers: ' + p.responses.map(r => r.objection_id + ': ' + r.response).join('; ') : ''}`;
+    case 'critique':    return `${p.verdict.toUpperCase()} — ${p.reasoning}${(p.objections||[]).length ? ' | ' + p.objections.map(o => `${o.id} (${o.severity}): ${o.text}`).join('; ') : ''}`;
+    case 'arbitration': return `${p.recommendation} (${p.confidence}) — ${p.reasoning}`;
+    case 'decision':    return p.note || `${p.recommendation} (${p.confidence}) — ${p.decidedBy || ''}`;
+    case 'memory':      return `Last analysis ${p.created_at}: ${p.recommendation}, risk ${p.riskScore}, ${p.trend}`;
+    case 'final':       return p.headline || p.reason || p.status || '';
+    default:            return JSON.stringify(p).slice(0, 160);
+  }
 }
 
-async function runAnalysis() {
-  const body = {
+function feedRow(e) {
+  const from = e.from.startsWith('tool:') ? '🔧 ' + e.from.slice(5) : (AGENT_ICONS[e.from]||'•') + ' ' + e.from;
+  const to   = e.to.startsWith('tool:')   ? '🔧 ' + e.to.slice(5)   : (AGENT_ICONS[e.to]||'•') + ' ' + e.to;
+  const fail = (e.type === 'tool_result' && e.payload && e.payload.ok === false) || e.type === 'error';
+  const llm  = e.llm ? (e.llm.ok ? `<span class="feed-llm">LLM ${e.llm.latency_ms ?? ''}ms</span>`
+                                 : `<span class="feed-llm off">rules fallback</span>`) : '';
+  return `<div class="feed-row t-${e.type}${fail ? ' fail' : ''}">
+    <span class="feed-seq">${e.seq}</span>
+    <span class="feed-route">${esc(from)} <span class="feed-arrow">→</span> ${esc(to)}</span>
+    <span class="feed-type">${TYPE_LABEL[e.type] || e.type}${e.round ? ' · round ' + e.round : ''}</span>${llm}
+    <div class="feed-msg">${esc(describeEvent(e))}</div>
+  </div>`;
+}
+
+function resetFeed(runId) {
+  const box = document.getElementById('agentFeed');
+  box.style.display = 'block';
+  box.innerHTML = `<div class="feed-head"><span>🤖 Agent conversation</span>
+    <span class="feed-run">${runId ? 'run ' + esc(runId) : ''}</span>
+    <button class="feed-toggle" onclick="toggleFeed()">hide</button></div>
+    <div class="feed-body" id="feedBody"></div>`;
+}
+function toggleFeed() {
+  const b = document.getElementById('feedBody'), t = document.querySelector('.feed-toggle');
+  const hidden = b.style.display === 'none';
+  b.style.display = hidden ? 'block' : 'none'; t.textContent = hidden ? 'hide' : 'show';
+}
+function appendFeed(e) {
+  const body = document.getElementById('feedBody');
+  if (!body) return;
+  body.insertAdjacentHTML('beforeend', feedRow(e));
+  body.scrollTop = body.scrollHeight;
+}
+
+function collectInput() {
+  return {
     ticker:         document.getElementById('ticker').value.trim().toUpperCase(),
     portfolioValue: parseFloat(document.getElementById('portfolio').value) || 50000,
     timeHorizon:    document.getElementById('horizon').value,
     riskAppetite:   document.getElementById('risk').value,
     experience:     document.getElementById('experience').value,
     age:            parseInt(document.getElementById('age').value) || 30,
+    goal:           (document.getElementById('goal')?.value || '').trim() || null,
   };
-  if (!body.ticker) { showError('Please enter an NSE ticker, e.g. RELIANCE.'); return; }
+}
 
-  setLoading(true, 'Agents are analysing… this can take up to a minute');
+function showError(message, details) {
+  document.getElementById('resultsContent').innerHTML = `<div class="error-card fade-in">
+    <div class="error-title">⚠ Analysis could not complete</div>
+    <div>${esc(message)}</div>
+    ${(details||[]).length ? '<ul>' + details.map(d => `<li><b>${esc(d.field)}</b>: ${esc(d.message)}</li>`).join('') + '</ul>' : ''}
+  </div>`;
+  document.getElementById('resultsContent').style.display = 'block';
+}
+
+async function runAnalysis() {
+  const input = collectInput();
+  if (!input.ticker) { showError('Please enter an NSE ticker, e.g. RELIANCE.'); return; }
+
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('resultsContent').style.display = 'none';
-  document.getElementById('runBtn').disabled = true;
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true; btn.innerHTML = '<span>⏳</span> Agents working…';
+  resetFeed('');
+
   try {
-    const r = await fetch('/api/analyze', {
+    const res = await fetch('/api/analyze/stream', {
       method: 'POST', credentials: 'include',
       headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(input),
       signal: AbortSignal.timeout(180000),
-      body: JSON.stringify(body),
     });
-    if (r.status === 401) { window.location.href = 'login.html'; return; }
-    const data = await r.json();
-    if (data.error) { showError(data.error, data.details); return; }
-    renderResults(data);
+    if (res.status === 401) { window.location.href = 'login.html'; return; }
+    if (res.status === 400) {
+      const b = await res.json();
+      document.getElementById('agentFeed').style.display = 'none';
+      showError(b.error, b.details); return;
+    }
+    if (!res.ok || !res.body) throw new Error('Server returned HTTP ' + res.status);
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '', result = null;
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let cut;
+      while ((cut = buffer.indexOf('\n\n')) >= 0) {
+        const chunk = buffer.slice(0, cut); buffer = buffer.slice(cut + 2);
+        let kind = 'message', data = '';
+        for (const line of chunk.split('\n')) {
+          if (line.startsWith('event: ')) kind = line.slice(7);
+          else if (line.startsWith('data: ')) data += line.slice(6);
+        }
+        if (!data) continue;
+        const payload = JSON.parse(data);
+        if (kind === 'start') document.querySelector('.feed-run').textContent = 'run ' + payload.runId;
+        else if (kind === 'trace') appendFeed(payload);
+        else if (kind === 'result') result = payload;
+      }
+    }
+    if (!result) throw new Error('The connection closed before the agents finished.');
+    if (result.error) { showError(result.error); return; }
+    renderResults(result);
   } catch (e) {
-    showError('Could not reach the analysis service: ' + e.message);
+    showError('Could not reach the analysis service: ' + e.message + '. Please try again.');
   } finally {
-    setLoading(false);
-    document.getElementById('runBtn').disabled = false;
+    btn.disabled = false; btn.innerHTML = '<span>⚡</span> Run AI Analysis';
   }
 }
 
@@ -137,6 +244,7 @@ function renderResults(d) {
 
   document.getElementById('resultsContent').innerHTML = `
   <div class="fade-in">
+    ${renderDegraded(d)}
     <div id="pdf-cover">
       <h1>QuantumAdvisor — Investment Analysis</h1>
       <p>${d.ticker} · ${dateStr} · multi-agent analysis</p>
@@ -145,6 +253,7 @@ function renderResults(d) {
       <div class="rh-left">
         <span class="results-title">Analysis</span>
         <span class="ticker-badge">${d.ticker}</span>
+        <span class="verified-badge">${esc(d.decidedBy || '')}</span>
       </div>
       <button class="download-btn" onclick="downloadPDF()">⬇ Download PDF</button>
     </div>
@@ -153,7 +262,7 @@ function renderResults(d) {
         <div class="price-label">Current Market Price</div>
         <div class="price-amount">${priceDisp}</div>
         <div class="price-ticker">${d.ticker} · NSE India</div>
-        <div class="price-source">Source: ${esc(d.priceSource || '—')} · ${dateStr}</div>
+        <div class="price-source">Source: ${esc(d.priceSource || '—')} · ${d.observations || '?'} daily closes · ${dateStr}</div>
       </div>
       <div class="rec-badge ${recClass}">
         <div class="rec-label">Recommendation</div>
@@ -171,7 +280,7 @@ function renderResults(d) {
             <div class="bar-lbl"><span>Risk Score</span><span>${rs} / 100</span></div>
             <div class="bar-bg"><div class="bar-fill" id="riskBar" style="width:0%;background:${color}"></div></div>
           </div>
-          <ul class="rf-list">${(d.riskFactors||[]).map(f=>`<li>${f}</li>`).join('')}</ul>
+          <ul class="rf-list">${(d.riskFactors||[]).map(f=>`<li>${esc(f)}</li>`).join('')}</ul>
         </div>
       </div>
     </div>
@@ -188,16 +297,20 @@ function renderResults(d) {
       <div class="target-card t2"><div class="t-label">Target 2</div><div class="t-price">₹${fmt(d.targetPrice2)}</div></div>
       <div class="target-card tsl"><div class="t-label">Stop Loss</div><div class="t-price">₹${fmt(d.stopLoss)}</div></div>
     </div>` : ''}
-    <div class="range-card">📊 ${d.expectedRange}</div>
+    <div class="range-card">📊 ${esc(d.expectedRange || '')}</div>
     <div class="insights-card">
       <div class="sec-title">Key Insights</div>
-      ${(d.reasoning||[]).map(r=>`<div class="insight-item">${r}</div>`).join('')}
+      ${(d.reasoning||[]).map(r=>`<div class="insight-item">${esc(r)}</div>`).join('')}
     </div>
     ${d.portfolioAdvice?.length ? `
     <div class="insights-card">
       <div class="sec-title">Portfolio Advice</div>
-      ${d.portfolioAdvice.map(r=>`<div class="insight-item">${r}</div>`).join('')}
+      ${d.portfolioAdvice.map(r=>`<div class="insight-item">${esc(r)}</div>`).join('')}
     </div>` : ''}
+    ${renderAnalystNotes(d)}
+    ${renderDebate(d)}
+    ${d.aiReport ? `<div class="insights-card"><div class="sec-title">Report Agent</div><div class="report-text">${esc(d.aiReport)}</div></div>` : ''}
+    ${renderMeta(d)}
     <div class="disclaimer">⚠ Educational analysis only. Consult a SEBI-registered financial advisor before investing.</div>
   </div>`;
 
@@ -206,6 +319,48 @@ function renderResults(d) {
     const bar = document.getElementById('riskBar');
     if (bar) { bar.style.transition = 'width 1.2s ease'; bar.style.width = rs + '%'; }
   }, 60));
+}
+
+/* ================================================================
+   AGENT EVIDENCE PANELS
+================================================================ */
+function renderDegraded(d) {
+  const m = d.meta || {};
+  const names = [...new Set([...(m.degradedAgents||[]), ...(m.failedAgents||[])])];
+  if (!names.length) return '';
+  return `<div class="degraded-banner">⚠ Partial result: ${esc(names.join(', '))} ran on rule-based fallbacks or had no data.
+    ${m.llmAvailable === false ? 'The LLM is not configured on this server.' : ''}</div>`;
+}
+function renderAnalystNotes(d) {
+  const rows = [
+    ['📈 Market', d.marketSummary],
+    ['🏢 Fundamentals', d.fundamentalsSummary],
+    ['📰 News', d.newsSummary],
+    ['🛡️ Risk', d.riskSummary],
+    ['👤 Profile', d.profileSummary],
+  ].filter(r => r[1]);
+  if (!rows.length) return '';
+  return `<div class="insights-card"><div class="sec-title">What each analyst found</div>
+    ${rows.map(([k,v]) => `<div class="insight-item"><b>${k}:</b> ${esc(v)}</div>`).join('')}</div>`;
+}
+function renderDebate(d) {
+  if (!(d.debate||[]).length) return '';
+  const verdictClass = {approve:'v-ok', revise:'v-warn', veto:'v-bad'};
+  return `<div class="insights-card"><div class="sec-title">Strategy ↔ Risk debate</div>
+    ${d.debate.map(r => `<div class="debate-round">
+      <div class="debate-line">🎯 <b>Round ${r.round} — Strategy:</b> ${esc(r.draft.recommendation)} (${esc(r.draft.confidence)})
+        ${(r.draft.responses||[]).map(x => `<div class="debate-sub">↳ ${esc(x.objection_id)}: ${esc(x.response)}</div>`).join('')}</div>
+      <div class="debate-line">🛡️ <b>Risk:</b> <span class="${verdictClass[r.critique.verdict]||''}">${esc(r.critique.verdict.toUpperCase())}</span> — ${esc(r.critique.reasoning)}
+        ${(r.critique.objections||[]).map(o => `<div class="debate-sub">${esc(o.id)} (${esc(o.severity)}): ${esc(o.text)}</div>`).join('')}</div>
+    </div>`).join('')}
+    <div class="debate-final">Final: <b>${esc(d.recommendation)}</b> · ${esc(d.decidedBy||'')}</div></div>`;
+}
+function renderMeta(d) {
+  const m = d.meta || {};
+  if (!m.runId) return '';
+  return `<div class="meta-line">Run ${esc(m.runId)} · LLM ${m.llmCalls - m.llmFailures}/${m.llmCalls} calls answered · ${m.replans} re-plan(s) ·
+    ${m.debateRounds} debate round(s) · ${(m.durationMs/1000).toFixed(1)} s ·
+    <a href="/api/runs/${encodeURIComponent(m.runId)}/trace" target="_blank" rel="noopener">raw trace JSON</a></div>`;
 }
 
 /* ================================================================
