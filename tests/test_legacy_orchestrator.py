@@ -1,9 +1,9 @@
 
 import json
 
-from orchestrator import Orchestrator
-from agents.risk_agent import RiskAgent
-from agents.strategy_agent import StrategyAgent
+from legacy.orchestrator import Orchestrator
+from legacy.agents.risk_agent import RiskAgent
+from legacy.agents.strategy_agent import StrategyAgent
 
 
 class FakeUserAgent:

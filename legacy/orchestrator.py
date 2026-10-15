@@ -3,14 +3,14 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from agents.market_agent import MarketAgent
-from agents.fundamentals_agent import FundamentalsAgent
-from agents.risk_agent import RiskAgent
-from agents.strategy_agent import StrategyAgent
-from agents.portfolio_agent import PortfolioAgent
-from agents.user_agent import UserAgent
-from agents.report_agent import ReportAgent
-from agents.news_sentiment_agent import NewsSentimentAgent
+from legacy.agents.market_agent import MarketAgent
+from legacy.agents.fundamentals_agent import FundamentalsAgent
+from legacy.agents.risk_agent import RiskAgent
+from legacy.agents.strategy_agent import StrategyAgent
+from legacy.agents.portfolio_agent import PortfolioAgent
+from legacy.agents.user_agent import UserAgent
+from legacy.agents.report_agent import ReportAgent
+from legacy.agents.news_sentiment_agent import NewsSentimentAgent
 
 
 class Orchestrator:

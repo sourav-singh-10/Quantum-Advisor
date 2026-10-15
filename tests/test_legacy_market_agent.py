@@ -3,10 +3,10 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from agents.market_agent import MarketAgent
+from legacy.agents.market_agent import MarketAgent
 
 
-@patch("agents.market_agent.requests.get")
+@patch("legacy.agents.market_agent.requests.get")
 def test_marketstack_success(mock_get):
     response = Mock()
     response.json.return_value = {
@@ -23,7 +23,7 @@ def test_marketstack_success(mock_get):
     assert prices == [110, 100]
 
 
-@patch("agents.market_agent.requests.get")
+@patch("legacy.agents.market_agent.requests.get")
 def test_alpha_vantage_fallback(mock_get):
     marketstack_response = Mock()
     marketstack_response.json.return_value = {}
@@ -50,7 +50,7 @@ def test_alpha_vantage_fallback(mock_get):
     assert mock_get.call_count == 2
 
 
-@patch("agents.market_agent.requests.get")
+@patch("legacy.agents.market_agent.requests.get")
 def test_both_apis_fail(mock_get):
     response = Mock()
     response.json.return_value = {}
