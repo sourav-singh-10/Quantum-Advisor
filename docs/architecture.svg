@@ -1,0 +1,80 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="760" viewBox="0 0 1000 760">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#526579"/>
+    </marker>
+    <style>
+      .box { fill:#f4f7fb; stroke:#496b91; stroke-width:1.6; rx:12; }
+      .title { font: bold 23px Arial; fill:#172b4d; }
+      .label { font: bold 15px Arial; fill:#172b4d; text-anchor:middle; }
+      .small { font: 13px Arial; fill:#344563; text-anchor:middle; }
+      .arrow { stroke:#526579; stroke-width:1.8; fill:none; marker-end:url(#arrow); }
+      .feedback { stroke:#c17b24; stroke-width:2; stroke-dasharray:6 4; fill:none; marker-end:url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1000" height="760" fill="#ffffff"/>
+  <text x="500" y="40" class="title" text-anchor="middle">Quantum Advisor — Agent Architecture</text>
+
+  <rect x="350" y="65" width="300" height="55" class="box"/>
+  <text x="500" y="88" class="label">User / Dashboard</text>
+  <text x="500" y="106" class="small">Stock ticker + investor profile</text>
+
+  <rect x="350" y="155" width="300" height="60" class="box"/>
+  <text x="500" y="180" class="label">Orchestrator</text>
+  <text x="500" y="198" class="small">Coordinates agent execution and trace</text>
+  <path d="M500 120 V155" class="arrow"/>
+
+  <rect x="40" y="270" width="210" height="70" class="box"/>
+  <text x="145" y="297" class="label">UserAgent</text>
+  <text x="145" y="317" class="small">Risk capacity profile</text>
+
+  <rect x="280" y="270" width="210" height="70" class="box"/>
+  <text x="385" y="297" class="label">MarketAgent</text>
+  <text x="385" y="317" class="small">Prices + technical indicators</text>
+
+  <rect x="520" y="270" width="210" height="70" class="box"/>
+  <text x="625" y="297" class="label">FundamentalsAgent</text>
+  <text x="625" y="317" class="small">Currently placeholder metrics</text>
+
+  <rect x="760" y="270" width="200" height="70" class="box"/>
+  <text x="860" y="297" class="label">NewsSentimentAgent</text>
+  <text x="860" y="317" class="small">News keyword sentiment</text>
+
+  <path d="M430 215 L145 270" class="arrow"/>
+  <path d="M470 215 L385 270" class="arrow"/>
+  <path d="M530 215 L625 270" class="arrow"/>
+  <path d="M570 215 L860 270" class="arrow"/>
+
+  <rect x="180" y="390" width="270" height="75" class="box"/>
+  <text x="315" y="418" class="label">RiskAgent</text>
+  <text x="315" y="439" class="small">Score + factors + strategy review</text>
+
+  <rect x="550" y="390" width="270" height="75" class="box"/>
+  <text x="685" y="418" class="label">StrategyAgent</text>
+  <text x="685" y="439" class="small">Recommendation + target/stop levels</text>
+
+  <path d="M385 340 L315 390" class="arrow"/>
+  <path d="M625 340 L315 390" class="arrow"/>
+  <path d="M860 340 L685 390" class="arrow"/>
+  <path d="M315 465 L315 485 L685 485 L685 465" class="arrow"/>
+  <path d="M550 430 L450 430" class="feedback"/>
+  <text x="500" y="418" class="small">Review</text>
+  <text x="500" y="505" class="small">Risk feedback may trigger one strategy revision</text>
+
+  <rect x="180" y="535" width="270" height="65" class="box"/>
+  <text x="315" y="562" class="label">PortfolioAgent</text>
+  <text x="315" y="581" class="small">Portfolio advice</text>
+
+  <rect x="550" y="535" width="270" height="65" class="box"/>
+  <text x="685" y="562" class="label">ReportAgent</text>
+  <text x="685" y="581" class="small">Text report from market/risk/news</text>
+
+  <path d="M685 465 V515 H315 V535" class="arrow"/>
+  <path d="M315 465 V510 H685 V535" class="arrow"/>
+
+  <rect x="270" y="645" width="460" height="55" class="box"/>
+  <text x="500" y="668" class="label">Combined Analysis Result</text>
+  <text x="500" y="686" class="small">Dashboard output + JSONL execution trace</text>
+  <path d="M315 600 L400 645" class="arrow"/>
+  <path d="M685 600 L600 645" class="arrow"/>
+</svg>
