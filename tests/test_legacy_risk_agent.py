@@ -1,5 +1,5 @@
 
-from agents.risk_agent import RiskAgent
+from legacy.agents.risk_agent import RiskAgent
 
 
 def test_high_volatility_increases_risk():

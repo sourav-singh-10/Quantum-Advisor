@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(__file__))
 from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
 
-from orchestrator import Orchestrator
+from legacy.orchestrator import Orchestrator
 from agents.portfolio_analyzer import PortfolioAnalyzer
 
 # ─────────────────────────────────────────────
