@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TraceEvent",
+  "description": "One agent message. Written to logs/traces/<run_id>.jsonl, streamed as SSE 'trace' events, returned in the response 'trace' array.",
+  "type": "object",
+  "required": ["run_id", "seq", "ts", "from", "to", "type", "payload"],
+  "properties": {
+    "run_id": {"type": "string", "pattern": "^r_[0-9]{8}_[0-9]{6}_[0-9a-f]{6}$"},
+    "seq": {"type": "integer", "minimum": 1, "description": "Order of the message within the run"},
+    "ts": {"type": "string", "format": "date-time"},
+    "from": {"type": "string", "description": "Agent name, 'User', 'memory', or 'tool:<name>'"},
+    "to": {"type": "string", "description": "Agent name, 'team', 'User', or 'tool:<name>'"},
+    "type": {"enum": ["request", "plan", "task", "tool_call", "tool_result", "result", "error",
+                      "replan", "assessment", "draft", "critique", "arbitration", "decision",
+                      "final", "memory"]},
+    "round": {"type": ["integer", "null"], "description": "Debate round for draft/critique"},
+    "payload": {"type": "object"},
+    "llm": {
+      "type": "object",
+      "description": "Present when an LLM made this decision",
+      "properties": {
+        "model": {"type": "string"},
+        "latency_ms": {"type": "integer"},
+        "ok": {"type": "boolean", "description": "false = the agent fell back to its rules"},
+        "fallback": {"type": "string"},
+        "error": {"type": ["string", "null"]}
+      }
+    }
+  }
+}
