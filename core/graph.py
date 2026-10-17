@@ -2,8 +2,11 @@ r"""The agent graph (LangGraph).
 
     profile -> plan -> analysts -> assess --retry--> analysts      (Planner re-plans)
                                     |  \--no price--> abort
-                                    v
+                                    |  \--document vs live data--> crosscheck --\
+                                    v                                            v
                               risk_assess -> strategy -> review --revise/veto--> strategy
+                                  \        |  \--asks for evidence--> followup --> strategy
+                                   \-asks for evidence-> followup   (Planner sends an analyst back)
                                                             |  \--round limit--> arbitrate
                                                             v                      |
                                                          approve -> portfolio <----/
@@ -19,6 +22,7 @@ from typing import Any, TypedDict
 from langgraph.graph import END, START, StateGraph
 
 import config
+from agents.document_agent import DocumentAnalyst
 from agents.fundamentals_agent import FundamentalsAnalyst
 from agents.market_agent import MarketAnalyst
 from agents.news_agent import NewsAnalyst
@@ -45,6 +49,8 @@ class State(TypedDict, total=False):
     market: dict
     fundamentals: dict
     news: dict
+    document: dict
+    conflicts: list
     risk: dict
     round: int
     drafts: list
@@ -53,6 +59,11 @@ class State(TypedDict, total=False):
     portfolio: dict
     report: dict
     status: str
+    availableAnalysts: list
+    followups: list
+    followupsLeft: int
+    pendingFollowup: Any
+    sameRound: bool
 
 
 RESULT_KEYS = {  # what each analyst's result message carries in the trace
@@ -62,9 +73,11 @@ RESULT_KEYS = {  # what each analyst's result message carries in the trace
                             "fundamentalsSummary"),
     "NewsAnalyst": ("newsSentiment", "headlineCount", "newsSource", "materialHeadlines",
                     "newsSummary"),
+    "DocumentAnalyst": ("documentName", "documentPagesUsed", "documentPeriod", "documentFigures",
+                        "documentRatios", "documentRedFlags", "documentSummary"),
 }
 STATE_KEY = {"MarketAnalyst": "market", "FundamentalsAnalyst": "fundamentals",
-             "NewsAnalyst": "news"}
+             "NewsAnalyst": "news", "DocumentAnalyst": "document"}
 
 
 def strip_private(d: dict) -> dict:
@@ -74,7 +87,7 @@ def strip_private(d: dict) -> dict:
 def build_graph(ctx: RunContext):
     planner, profile_agent = PlannerAgent(), ProfileAgent()
     analysts = {"MarketAnalyst": MarketAnalyst(), "FundamentalsAnalyst": FundamentalsAnalyst(),
-                "NewsAnalyst": NewsAnalyst()}
+                "NewsAnalyst": NewsAnalyst(), "DocumentAnalyst": DocumentAnalyst()}
     risk_mgr, strategist = RiskManager(), StrategyAgent()
     portfolio_agent, reporter = PortfolioAgent(), ReportAgent()
 
@@ -92,7 +105,8 @@ def build_graph(ctx: RunContext):
         return {"profile": prof, "lastRun": last}
 
     def plan_node(state: State) -> State:
-        plan = planner.plan(ctx, state["request"], state["profile"], state.get("lastRun"))
+        plan = planner.plan(ctx, state["request"], state["profile"], state.get("lastRun"),
+                            ctx.document)
         return {"tasks": [t.model_dump() for t in plan.tasks], "focus": plan.focus,
                 "results": {}, "errors": {}, "replans": 0}
 
@@ -100,6 +114,8 @@ def build_graph(ctx: RunContext):
         name, instruction = task["agent"], task["instruction"]
         ctx.emit("Planner", name, "task", {"instruction": instruction})
         try:
+            if ctx.simulated_agent_failure(name):
+                raise ToolError(f"simulated failure of {name}'s first attempt (evaluation mode)")
             out = analysts[name].run(ctx, ticker, instruction)
             ctx.emit(name, "Planner", "result",
                      {k: out.get(k) for k in RESULT_KEYS[name]}, llm=out.get("_llm"))
@@ -114,7 +130,7 @@ def build_graph(ctx: RunContext):
     def analysts_node(state: State) -> State:
         ticker = state["request"]["ticker"]
         results, errors = dict(state.get("results") or {}), dict(state.get("errors") or {})
-        with ThreadPoolExecutor(max_workers=3) as pool:
+        with ThreadPoolExecutor(max_workers=4) as pool:
             for name, out, err in pool.map(lambda t: run_one(t, ticker), state["tasks"]):
                 if out is not None:
                     results[name] = out
@@ -136,12 +152,39 @@ def build_graph(ctx: RunContext):
                 if name in res:
                     update[key] = res[name]
             ctx.failed.update(state["errors"].keys())
+            update["availableAnalysts"] = [n for n in STATE_KEY if n in res]
         return update
 
     def route_after_assess(state: State) -> str:
         if state.get("tasks"):
             return "analysts"
-        return "risk_assess" if "market" in state else "abort"
+        if "market" not in state:
+            return "abort"
+        fund = state.get("fundamentals") or {}
+        if state.get("document") and fund.get("fundamentalsAvailable"):
+            return "crosscheck"
+        return "risk_assess"
+
+    def crosscheck_node(state: State) -> State:
+        """The document analyst challenges the live fundamentals; the Planner settles it."""
+        doc, fund = state["document"], state["fundamentals"]
+        doc = dict(doc)
+        issues = analysts["DocumentAnalyst"].challenge(ctx, doc, fund, state["request"]["ticker"])
+        if not issues:
+            return {"conflicts": [], "document": doc}
+        if issues[0]["metric"] == "company":
+            return {"conflicts": issues, "document": doc,
+                    "confidenceCap": "Low" if state.get("confidenceCap") == "Low" else "Moderate"}
+        ctx.emit("FundamentalsAnalyst", "DocumentAnalyst", "reply",
+                 {"basis": "Live figures are trailing-twelve-month values from Yahoo Finance "
+                           f"(margin {fund.get('profitMargin')}%, D/E {fund.get('de')}); a filed "
+                           "statement for one period can legitimately differ."})
+        decision = planner.reconcile(ctx, issues, doc, fund, state.get("confidenceCap", "High"))
+        fund = {**fund, "documentCheck": {"issues": [i["text"] for i in issues],
+                                          "trust": decision.trust,
+                                          "reasoning": decision.reasoning}}
+        return {"conflicts": issues, "fundamentals": fund, "document": doc,
+                "confidenceCap": decision.confidence_cap}
 
     def abort_node(state: State) -> State:
         ctx.emit("Planner", "User", "final",
@@ -155,27 +198,73 @@ def build_graph(ctx: RunContext):
         ctx.emit("RiskManager", "Planner", "result",
                  {k: risk[k] for k in ("riskScore", "riskLevel", "riskFactors", "suitabilityGap",
                                        "riskSummary")}, llm=risk.get("_llm"))
-        return {"risk": risk, "round": 0, "drafts": [], "debate": []}
+        return {"risk": risk, "round": 0, "drafts": [], "debate": [], "followups": [],
+                "followupsLeft": config.MAX_FOLLOWUPS, "pendingFollowup": None, "sameRound": False}
 
     def strategy_node(state: State) -> State:
-        rnd = state["round"] + 1
-        if rnd == 1:
+        # After the strategist's own follow-up it redrafts the same round with the answer.
+        rnd = state["round"] if state.get("sameRound") else state["round"] + 1
+        if rnd == 1 and not state.get("sameRound"):
             ctx.emit("Planner", "StrategyAgent", "task", {"instruction": state.get("focus", "")})
         last = state["debate"][-1] if state["debate"] else None
         draft = strategist.propose(ctx, state, rnd, last["critique"] if last else None,
                                    last["draft"] if last else None)
-        return {"round": rnd, "drafts": state["drafts"] + [draft]}
+        pending = ({"from": "StrategyAgent", **draft["followup"]} if draft.get("followup") else None)
+        return {"round": rnd, "drafts": state["drafts"] + [draft], "pendingFollowup": pending,
+                "sameRound": False}
+
+    def route_after_strategy(state: State) -> str:
+        return "followup" if state.get("pendingFollowup") else "review"
 
     def review_node(state: State) -> State:
         draft = state["drafts"][-1]
-        crit = risk_mgr.review(ctx, draft, state, state["round"], state["debate"])
+        left = state.get("followupsLeft", 0) if state["round"] < config.MAX_DEBATE_ROUNDS else 0
+        crit = risk_mgr.review(ctx, draft, {**state, "followupsLeft": left}, state["round"],
+                               state["debate"])
         entry = {"round": state["round"],
                  "draft": {k: draft[k] for k in ("recommendation", "confidence", "rationale",
                                                  "responses")},
                  "critique": crit.model_dump()}
-        return {"debate": state["debate"] + [entry]}
+        pending = ({"from": "RiskManager", **crit.followup.model_dump()} if crit.followup else None)
+        return {"debate": state["debate"] + [entry], "pendingFollowup": pending}
+
+    def followup_node(state: State) -> State:
+        """Strategy or Risk asked for more evidence: the Planner decides and routes it."""
+        req = state["pendingFollowup"]
+        requester = req["from"]
+        ctx.emit(requester, "Planner", "followup",
+                 {"agent": req["agent"], "question": req["question"], "why": req.get("why", "")},
+                 round_=state["round"])
+        grant = planner.route_followup(ctx, requester, req, state.get("availableAnalysts", []),
+                                       state.get("followups") or [])
+        record = {"from": requester, "round": state["round"], "agent": grant.agent,
+                  "question": req["question"], "instruction": grant.instruction,
+                  "granted": grant.grant, "reasoning": grant.reasoning}
+        if grant.grant:
+            ctx.emit("Planner", grant.agent, "task", {"instruction": grant.instruction,
+                                                      "for": requester})
+            previous = state.get(STATE_KEY[grant.agent]) or {}
+            try:
+                ans = analysts[grant.agent].follow_up(ctx, state["request"]["ticker"],
+                                                      grant.instruction, previous)
+            except Exception as exc:          # a failed follow-up must not stop the debate
+                ans = {"answer": f"Could not answer: {type(exc).__name__}", "evidence": [],
+                       "changes_view": False, "_llm": None}
+            ctx.emit(grant.agent, requester, "answer",
+                     {"question": req["question"], "answer": ans["answer"],
+                      "evidence": ans.get("evidence", []), "changesView": ans.get("changes_view", False)},
+                     round_=state["round"], llm=ans.get("_llm"))
+            record.update({"answer": ans["answer"], "evidence": ans.get("evidence", []),
+                           "changesView": ans.get("changes_view", False)})
+        else:
+            record["answer"] = f"Not asked: {grant.reasoning}"
+        return {"followups": (state.get("followups") or []) + [record],
+                "followupsLeft": state.get("followupsLeft", 0) - 1, "pendingFollowup": None,
+                "sameRound": requester == "StrategyAgent"}
 
     def route_after_review(state: State) -> str:
+        if state.get("pendingFollowup"):
+            return "followup"
         verdict = state["debate"][-1]["critique"]["verdict"]
         if verdict == "approve":
             return "approve"
@@ -221,8 +310,10 @@ def build_graph(ctx: RunContext):
     # ------------------------------------------------------------ wiring
     g = StateGraph(State)
     for name, fn in [("profile", profile_node), ("plan", plan_node), ("analysts", analysts_node),
-                     ("assess", assess_node), ("abort", abort_node), ("risk_assess", risk_node),
+                     ("assess", assess_node), ("abort", abort_node),
+                     ("crosscheck", crosscheck_node), ("risk_assess", risk_node),
                      ("strategy", strategy_node), ("review", review_node),
+                     ("followup", followup_node),
                      ("approve", approve_node), ("arbitrate", arbitrate_node),
                      ("portfolio", portfolio_node), ("report", report_node)]:
         g.add_node(name, fn)
@@ -232,13 +323,16 @@ def build_graph(ctx: RunContext):
     g.add_edge("analysts", "assess")
     g.add_conditional_edges("assess", route_after_assess,
                             {"analysts": "analysts", "risk_assess": "risk_assess",
-                             "abort": "abort"})
+                             "crosscheck": "crosscheck", "abort": "abort"})
+    g.add_edge("crosscheck", "risk_assess")
     g.add_edge("abort", END)
     g.add_edge("risk_assess", "strategy")
-    g.add_edge("strategy", "review")
+    g.add_conditional_edges("strategy", route_after_strategy,
+                            {"followup": "followup", "review": "review"})
     g.add_conditional_edges("review", route_after_review,
                             {"approve": "approve", "arbitrate": "arbitrate",
-                             "strategy": "strategy"})
+                             "strategy": "strategy", "followup": "followup"})
+    g.add_edge("followup", "strategy")
     g.add_edge("approve", "portfolio")
     g.add_edge("arbitrate", "portfolio")
     g.add_edge("portfolio", "report")

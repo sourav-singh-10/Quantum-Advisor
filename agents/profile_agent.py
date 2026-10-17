@@ -8,6 +8,22 @@ from tools.risk_rules import risk_capacity
 HORIZON_YEARS = {"Short-term": 1, "Medium-term": 3, "Long-term": 7}
 
 
+def _money(v) -> str:
+    return f"INR {v:,.0f}" if v else "not given"
+
+
+def _goals_line(request: dict) -> str:
+    parts = []
+    for g in request.get("goals") or []:
+        bits = [g.get("title", "")]
+        if g.get("amount"):
+            bits.append(f"INR {g['amount']:,.0f}")
+        if g.get("year"):
+            bits.append(f"by {g['year']}")
+        parts.append(" ".join(b for b in bits if b))
+    return "; ".join(parts)
+
+
 class ProfileAgent(BaseAgent):
     name = "ProfileAgent"
     system = ("You profile retail investors in India. Be conservative: never allow more than "
@@ -32,8 +48,11 @@ class ProfileAgent(BaseAgent):
                   f"risk appetite {request['riskAppetite']}, horizon {request['timeHorizon']}, "
                   f"portfolio INR {request['portfolioValue']:,.0f}. Risk capacity score "
                   f"(computed) {capacity}/100.\nStated goal: {request.get('goal') or 'none'}\n"
+                  f"Saved goals: {_goals_line(request) or 'none'}\n"
+                  f"Adds each month: {_money(request.get('monthlyInvest'))}\n"
+                  f"Asked to avoid: {', '.join(request.get('avoidSectors') or []) or 'nothing'}\n"
                   "Return the investor summary, a max single-stock position %, horizon in years, "
-                  "and any constraints the goal implies (e.g. needs the money in 2 years).")
+                  "and any constraints the goals imply (e.g. needs the money in 2 years).")
         view, meta = self.decide(ctx, prompt, ProfileView, fallback)
         experience = request["experience"]
         return {

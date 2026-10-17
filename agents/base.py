@@ -16,8 +16,9 @@ from pydantic import BaseModel
 
 import config
 from core.context import RunContext
-from core.schemas import ToolStep
+from core.schemas import FollowUpAnswer, ToolStep
 from tools.base import ToolError
+from tools.safety import SYSTEM_NOTE
 
 
 @dataclass
@@ -37,7 +38,7 @@ class BaseAgent:
     # ------------------------------------------------------------ one decision
     def decide(self, ctx: RunContext, prompt: str, schema: Type[BaseModel],
                fallback: Callable[[], BaseModel]) -> tuple[BaseModel, dict]:
-        res = ctx.llm.structured(agent=self.name, system=self.system, prompt=prompt,
+        res = ctx.llm.structured(agent=self.name, system=self.system + SYSTEM_NOTE, prompt=prompt,
                                  schema=schema, reasoning=self.use_reasoning_model)
         meta = {"model": res.model, "latency_ms": res.latency_ms, "ok": res.value is not None}
         if res.value is not None:
@@ -45,6 +46,42 @@ class BaseAgent:
         ctx.degraded.add(self.name)
         meta.update({"fallback": "rules", "error": res.error})
         return fallback(), meta
+
+    # ------------------------------------------------------------ follow-up questions
+    def use_tool(self, ctx: RunContext, name: str, argument: str, fn: Callable[[], Any],
+                 summarize: Callable[[Any], str]):
+        """Call one tool and trace it; returns None when the tool fails."""
+        ctx.emit(self.name, f"tool:{name}", "tool_call", {"argument": argument})
+        try:
+            if ctx.simulated_tool_failure(name, argument):
+                raise ToolError(f"simulated outage of {name} (evaluation mode)")
+            out = fn()
+        except ToolError as exc:
+            ctx.emit(f"tool:{name}", self.name, "tool_result", {"ok": False, "error": str(exc)})
+            return None
+        ctx.emit(f"tool:{name}", self.name, "tool_result", {"ok": True, "summary": summarize(out)})
+        return out
+
+    def followup_facts(self, ctx: RunContext, ticker: str, question: str,
+                       previous: dict) -> tuple[list[str], str]:
+        """Facts (gathered with tools) that bear on a follow-up question, and a rule answer.
+        Analysts override this; the default restates what the analyst already found."""
+        facts = [f"{k}: {v}" for k, v in previous.items()
+                 if not k.startswith("_") and isinstance(v, (str, int, float)) and v not in ("", None)][:14]
+        return facts, (facts[0] if facts else "No further information is available.")
+
+    def follow_up(self, ctx: RunContext, ticker: str, question: str, previous: dict) -> dict:
+        """Answer a question another agent asked through the Planner."""
+        facts, rule_answer = self.followup_facts(ctx, ticker, question, previous or {})
+
+        def fallback():
+            return FollowUpAnswer(answer=rule_answer, evidence=facts[:4], changes_view=False)
+
+        prompt = (f"Question from the investment committee about {ticker}: {question}\n"
+                  "Facts from your tools:\n- " + "\n- ".join(facts or ["(no facts available)"]) +
+                  "\nAnswer directly, using only these facts. Say so if they cannot answer it.")
+        ans, meta = self.decide(ctx, prompt, FollowUpAnswer, fallback)
+        return {**ans.model_dump(), "_llm": meta}
 
     # ------------------------------------------------------------ tool loop
     def tool_loop(self, ctx: RunContext, goal: str, tools: list[Tool],
@@ -67,7 +104,7 @@ class BaseAgent:
             prompt = (f"Goal: {goal}\n\nTools:\n{catalog}\n- finish: stop when you have what "
                       f"you need, or when nothing else can help.\n\nObservations so far:\n"
                       f"{history}\n\nChoose the next action.")
-            res = ctx.llm.structured(agent=self.name, system=self.system, prompt=prompt,
+            res = ctx.llm.structured(agent=self.name, system=self.system + SYSTEM_NOTE, prompt=prompt,
                                      schema=ToolStep)
             if res.value is None:
                 ctx.degraded.add(self.name)
@@ -79,8 +116,12 @@ class BaseAgent:
             step: ToolStep = res.value
             llm_meta = {"model": res.model, "latency_ms": res.latency_ms, "ok": True}
             if step.action == "finish":
-                ctx.emit(self.name, self.name, "decision",
-                         {"thought": step.thought, "action": "finish"}, llm=llm_meta)
+                payload = {"thought": step.thought, "action": "finish"}
+                if not any(o["ok"] for o in observations):
+                    # The LLM's own words are not evidence: record what actually happened.
+                    payload["check"] = ("No tool call has succeeded yet, so the remaining "
+                                        "sources are tried before giving up.")
+                ctx.emit(self.name, self.name, "decision", payload, llm=llm_meta)
                 break
             if step.action not in by_name:
                 observations.append({"tool": step.action, "argument": step.argument,
@@ -111,6 +152,8 @@ class BaseAgent:
         ctx.emit(self.name, f"tool:{tool.name}", "tool_call",
                  {"argument": argument, "thought": thought}, llm=llm)
         try:
+            if ctx.simulated_tool_failure(tool.name, argument):
+                raise ToolError(f"simulated outage of {tool.name}({argument}) (evaluation mode)")
             result = tool.run(argument)
             summary = tool.summarize(result)
             observations.append({"tool": tool.name, "argument": argument, "ok": True,

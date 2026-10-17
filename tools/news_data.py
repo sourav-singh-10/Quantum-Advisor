@@ -9,14 +9,18 @@ import requests
 import config
 from tools.base import ToolError, cached, http_get_json
 
+# Generic words like "launch" or "orders" were dropped: in real headlines they are as
+# often about other companies (or neutral) as good news for this one.
 POSITIVE = ["surge", "surges", "soar", "soars", "rally", "rallies", "beat", "beats", "record",
             "profit", "profits", "growth", "upgrade", "upgraded", "bullish", "gain", "gains",
-            "rise", "rises", "jumps", "outperform", "expansion", "dividend", "acquisition",
-            "partnership", "launch", "launches", "approval", "wins", "order", "orders"]
+            "rise", "rises", "jumps", "outperform", "outperformed", "expansion", "dividend",
+            "wins", "buy", "strong"]
 NEGATIVE = ["fall", "falls", "drop", "drops", "plunge", "plunges", "miss", "misses", "loss",
             "losses", "decline", "declines", "downgrade", "downgraded", "weak", "bearish",
             "crash", "fraud", "lawsuit", "recall", "investigation", "penalty", "bankruptcy",
-            "default", "layoff", "layoffs", "probe", "scandal", "slump", "slumps", "warning"]
+            "default", "layoff", "layoffs", "probe", "scandal", "slump", "slumps", "warning",
+            "warns", "seize", "seizes", "seized", "charges", "allegations", "row", "risk",
+            "risks", "pressure", "flat", "sell", "selloff", "sell-off", "lows", "cut", "cuts"]
 _POS = re.compile(r"\b(" + "|".join(POSITIVE) + r")\b", re.I)
 _NEG = re.compile(r"\b(" + "|".join(NEGATIVE) + r")\b", re.I)
 
@@ -46,7 +50,8 @@ def fetch_google_news_rss(query: str) -> list[dict]:
     except (requests.RequestException, ET.ParseError) as exc:
         raise ToolError(f"Google News RSS error: {type(exc).__name__}") from exc
     items = [{"title": (it.findtext("title") or "").strip(),
-              "source": it.findtext("source"), "published": it.findtext("pubDate")}
+              "source": it.findtext("source"), "published": it.findtext("pubDate"),
+              "link": (it.findtext("link") or "").strip() or None}
              for it in root.iter("item")][:15]
     if not items:
         raise ToolError(f"Google News found no articles for '{query}'")
@@ -69,9 +74,10 @@ def keyword_sentiment(titles: list[str]) -> dict:
     """Fallback scorer used when the LLM is unavailable. Whole words only."""
     pos = sum(len(_POS.findall(t)) for t in titles)
     neg = sum(len(_NEG.findall(t)) for t in titles)
-    if pos > neg:
+    # Only call it when one side clearly dominates; a near-tie is Neutral.
+    if pos - neg >= 2 and pos >= 2 * neg:
         label, score = "Positive", 1
-    elif neg > pos:
+    elif neg - pos >= 2 and neg >= 2 * pos:
         label, score = "Negative", -1
     else:
         label, score = "Neutral", 0

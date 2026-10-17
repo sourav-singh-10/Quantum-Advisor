@@ -7,5 +7,8 @@ numpy==2.5.3
 openpyxl==3.1.5
 pydantic==2.13.5
 google-genai==2.31.0
+google-auth==2.62.0
 langgraph==1.2.15
 yfinance==1.7.0
+pypdf==5.9.0
+psycopg[binary]==3.3.6
