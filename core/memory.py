@@ -6,29 +6,27 @@ The Planner reads the previous run for the same ticker so it can notice what cha
 from __future__ import annotations
 
 import json
-import sqlite3
 from datetime import datetime, timezone
 from typing import Optional
 
 import config
+from core import db as dbm
 
 
 class RunMemory:
     def __init__(self, db_path: Optional[str] = None):
-        self.db_path = db_path or config.DB_PATH
-        with self._conn() as db:
-            db.execute(
-                """CREATE TABLE IF NOT EXISTS runs (
-                       run_id TEXT PRIMARY KEY,
-                       user_key TEXT NOT NULL,
-                       ticker TEXT NOT NULL,
-                       created_at TEXT NOT NULL,
-                       summary TEXT NOT NULL)"""
-            )
-            db.execute("CREATE INDEX IF NOT EXISTS runs_user_ticker ON runs(user_key, ticker)")
+        self.db_path = db_path          # None: DATABASE_URL if set, else the local DB_PATH file
+        dbm.ensure_schema("memory", self.db_path, lambda db: db.executescript(
+            """CREATE TABLE IF NOT EXISTS runs (
+                   run_id TEXT PRIMARY KEY,
+                   user_key TEXT NOT NULL,
+                   ticker TEXT NOT NULL,
+                   created_at TEXT NOT NULL,
+                   summary TEXT NOT NULL);
+               CREATE INDEX IF NOT EXISTS runs_user_ticker ON runs(user_key, ticker)"""))
 
     def _conn(self):
-        return sqlite3.connect(self.db_path)
+        return dbm.connect(self.db_path)
 
     def last_run(self, user_key: str, ticker: str) -> Optional[dict]:
         with self._conn() as db:

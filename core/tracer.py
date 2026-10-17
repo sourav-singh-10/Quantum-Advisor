@@ -19,7 +19,7 @@ import config
 MESSAGE_TYPES = {
     "request", "plan", "task", "tool_call", "tool_result", "result", "error",
     "replan", "assessment", "draft", "critique", "arbitration", "decision",
-    "final", "memory",
+    "final", "memory", "challenge", "reply", "reconciliation", "followup", "answer",
 }
 
 
