@@ -11,6 +11,7 @@ Writes, unedited:
 Never edit these files by hand: CA3 treats an edited trace as an integrity violation.
 """
 import argparse
+import sys
 import json
 from pathlib import Path
 
@@ -32,24 +33,38 @@ def main():
     ap.add_argument("--horizon", default="Medium-term")
     ap.add_argument("--value", type=float, default=100000)
     ap.add_argument("--goal", default=None)
+    ap.add_argument("--document", default=None, help="path to the company's annual report PDF")
+    ap.add_argument("--signup", action="store_true",
+                    help="create the account first if it does not exist yet")
     a = ap.parse_args()
 
     s = requests.Session()
-    r = s.post(f"{a.base_url}/login", json={"email": a.email, "password": a.password}, timeout=30)
-    r.raise_for_status()
+    r = s.post(f"{a.base_url}/login", json={"email": a.email, "password": a.password}, timeout=60)
+    if r.status_code == 401 and a.signup:
+        r = s.post(f"{a.base_url}/signup", json={"email": a.email, "password": a.password}, timeout=60)
+    if r.status_code >= 400:
+        sys.exit(f"Could not sign in as {a.email} (HTTP {r.status_code}: {r.text[:200]}). "
+                 "Check the password, or add --signup to create this account first.")
     body = {"ticker": a.ticker, "age": a.age, "experience": a.experience,
             "riskAppetite": a.risk, "timeHorizon": a.horizon, "portfolioValue": a.value}
     if a.goal:
         body["goal"] = a.goal
-    r = s.post(f"{a.base_url}/api/analyze", json=body, timeout=300)
+    if a.document:
+        with open(a.document, "rb") as fh:
+            r = s.post(f"{a.base_url}/api/analyze", data={k: str(v) for k, v in body.items()},
+                       files={"document": (Path(a.document).name, fh, "application/pdf")},
+                       timeout=600)
+        body["document"] = Path(a.document).name
+    else:
+        r = s.post(f"{a.base_url}/api/analyze", json=body, timeout=300)
     out = r.json()
     trace = out.pop("trace", [])
 
     (ROOT / "docs/samples").mkdir(parents=True, exist_ok=True)
     (ROOT / "docs/traces").mkdir(parents=True, exist_ok=True)
-    (ROOT / f"docs/samples/{a.name}_request.json").write_text(json.dumps(body, indent=2))
+    (ROOT / f"docs/samples/{a.name}_request.json").write_text(json.dumps(body, indent=2), encoding="utf-8")
     (ROOT / f"docs/samples/{a.name}_response.json").write_text(
-        json.dumps(out, indent=2, ensure_ascii=False))
+        json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
     with (ROOT / f"docs/traces/{a.name}.jsonl").open("w", encoding="utf-8") as fh:
         for e in trace:
             fh.write(json.dumps(e, ensure_ascii=False) + "\n")
