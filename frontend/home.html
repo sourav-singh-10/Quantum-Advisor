@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantum Advisor</title>
+<meta name="description" content="A committee of AI agents researches an NSE stock, argues about it in the open and gives you a decision sized for your money and your goals.">
+<meta name="theme-color" content="#0A0F1C">
+<link rel="preload" href="fonts/plus-jakarta-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/system.css">
+<link rel="stylesheet" href="css/agent-flow.css">
+<link rel="stylesheet" href="css/player.css">
+<link rel="stylesheet" href="css/home.css">
+<link rel="icon" href="img/mark.svg" type="image/svg+xml">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="h-nav" id="nav">
+  <div class="h-nav-in">
+    <a class="h-brand" href="/"><img src="img/mark.svg" alt="" width="28" height="28"><span>Quantum Advisor</span></a>
+    <nav class="h-links" aria-label="Main">
+      <a href="#how">How it works</a>
+      <a href="#run">A real run</a>
+      <a href="#decision">The decision</a>
+      <a href="#daily">Every day</a>
+      <a href="#results">Results</a>
+    </nav>
+    <div class="h-nav-cta">
+      <a href="login.html" class="h-signin" id="navSignIn">Sign in</a>
+      <a href="signup.html" class="h-btn h-btn-sm" id="navCta">Start free</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <!-- ============ hero: the committee at work ============ -->
+  <section class="h-hero" id="how" aria-labelledby="heroTitle">
+    <div class="h-wrap h-hero-text">
+      <span class="label-chip on-dark">Multi-agent stock analysis for NSE</span>
+      <h1 id="heroTitle">Investment research by a <em>committee of AI agents</em></h1>
+      <p class="h-sub">Name a stock and tell us about yourself once. Analysts gather the data in parallel, a strategist proposes a call, a risk manager challenges it, and you can watch every message as it happens.</p>
+      <div class="h-cta">
+        <a class="h-btn" href="signup.html" id="heroCta">Start free</a>
+        <a class="h-btn h-btn-ghost" href="#run">Watch a real run</a>
+      </div>
+    </div>
+
+    <div class="h-wrap">
+      <figure class="h-demo" aria-labelledby="demoTitle">
+        <div class="h-demo-head">
+          <div>
+            <p class="h-step-no" id="stepNo">Step 1 of 10</p>
+            <p class="h-step-title" id="demoTitle">You ask</p>
+            <p class="h-step-text" id="stepText" aria-live="polite">You pick a stock. The Profile agent turns your age, horizon and attitude to risk into limits every other agent must respect.</p>
+          </div>
+          <div class="h-demo-ctrl">
+            <button type="button" class="h-ctl" id="stepPrev" aria-label="Previous step"><svg viewBox="0 0 16 16"><path d="M10.5 3 5.5 8l5 5" /></svg></button>
+            <button type="button" class="h-ctl h-ctl-play" id="stepPlay" aria-pressed="true"><span>Pause</span></button>
+            <button type="button" class="h-ctl" id="stepNext" aria-label="Next step"><svg viewBox="0 0 16 16"><path d="m5.5 3 5 5-5 5" /></svg></button>
+          </div>
+        </div>
+        <div class="h-demo-flow" id="demoFlow"></div>
+        <ol class="h-steps" id="steps" aria-label="Steps of a run">
+          <li><button type="button">You ask</button></li><li><button type="button">Plan</button></li>
+          <li><button type="button">Research</button></li><li><button type="button">Adapt</button></li>
+          <li><button type="button">Review</button></li><li><button type="button">Draft</button></li>
+          <li><button type="button">Object</button></li><li><button type="button">Ask</button></li>
+          <li><button type="button">Revise</button></li><li><button type="button">Decide</button></li>
+        </ol>
+        <figcaption class="sr-only">How a run moves between the agents. This is an illustration of the steps; the recorded run further down is real.</figcaption>
+      </figure>
+      <p class="h-demo-note">An illustration of how a run moves. The order is not fixed: each step depends on what the last one found.</p>
+    </div>
+
+    <div class="h-wrap h-numbers" id="results">
+      <span class="label-chip on-dark">Measured, not claimed</span>
+      <dl>
+        <div><dd><span data-count="9">9</span>/9</dd><dt>repeat runs gave the same call for the same investor and data</dt></div>
+        <div><dd><span data-count="358">358</span>/358</dd><dt>agent decisions made by the model, none by fallback rules</dt></div>
+        <div><dd><span data-count="5">5</span>/5</dd><dt>provoked failures handled, from a dead price source to a planted instruction in a PDF</dt></div>
+        <div><dd><span data-count="70">70</span>s</dd><dt>median time for a full analysis on the free model tier</dt></div>
+      </dl>
+      <p class="h-src">From the evaluation and failure-scenario reports in the <a href="https://github.com/sourav-singh-10/Quantum-Advisor">repository</a>, 17 Oct 2026: 18 runs across three stocks and three investors, plus five provoked failures.</p>
+    </div>
+    <div class="h-horizon" aria-hidden="true"></div>
+  </section>
+
+  <!-- ============ a real run ============ -->
+  <section class="h-section" id="run" aria-labelledby="runTitle">
+    <div class="h-wrap h-center">
+      <span class="label-chip">Recorded run</span>
+      <h2 id="runTitle">One real analysis, <em>message by message</em></h2>
+      <p class="h-lead">Above is how a run moves. Here is what one actually said. A conservative 62-year-old asked about a large IT stock: the committee first said hold, the risk manager asked for a year of prices, and the evidence changed the call. Each lane is an agent, time runs down, and every line is copied from the trace.</p>
+    </div>
+    <div class="h-wrap">
+      <section class="player" id="runPlayer" aria-label="Replay of a recorded run">
+        <div class="run-split">
+          <div id="runSeq"></div>
+          <aside class="run-side">
+            <div class="run-story" aria-live="polite">
+              <p class="now-route" id="runRoute"><span class="chapter">Ready</span><span>Press play, or scroll here and it starts.</span></p>
+              <p class="now-caption" id="runCaption">45 messages between 9 agents, in 41 seconds.</p>
+              <p class="now-quote" id="runQuote"></p>
+            </div>
+            <div class="call-box"><p class="k">The committee's call</p><p class="v" id="runCall">None yet</p><p class="n" id="runCallNote"></p></div>
+            <ul class="run-legend" aria-label="Key">
+              <li>A message, sender to receiver</li><li class="r-obj">An objection</li><li class="r-ok">An approval</li>
+              <li class="r-ask">Asking for evidence</li><li class="r-tool">A tool call: green worked, red failed</li>
+            </ul>
+          </aside>
+        </div>
+        <div class="player-bar">
+          <button type="button" class="pbtn" id="runPrev" aria-label="Previous message"><svg viewBox="0 0 16 16"><path d="M4 3h2v10H4zM13 3v10L7 8z"/></svg></button>
+          <button type="button" class="pbtn play" id="runPlay" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4 2.5v11L13.5 8z"/></svg><span>Play</span></button>
+          <button type="button" class="pbtn" id="runNext" aria-label="Next message"><svg viewBox="0 0 16 16"><path d="M10 3h2v10h-2zM3 3v10l6-5z"/></svg></button>
+          <ol class="chapters" id="runChapters" aria-label="Chapters"></ol>
+          <a class="h-trace-link" id="runTrace" href="trace.html?sample">Open the full trace</a>
+        </div>
+      </section>
+      <p class="h-fine" id="runMeta"></p>
+    </div>
+  </section>
+
+  <!-- ============ why a committee ============ -->
+  <section class="h-section h-tint" aria-labelledby="whyTitle">
+    <div class="h-wrap h-split-head">
+      <div>
+        <span class="label-chip">Why a committee</span>
+        <h2 id="whyTitle">One model agrees with itself. <em>A committee has to convince a critic.</em></h2>
+      </div>
+      <p class="h-lead">Each agent has one job and its own tools. They hand work to each other through the Planner, so every claim can be traced to who made it and what data it used.</p>
+    </div>
+    <div class="h-wrap h-cards">
+      <article class="h-card">
+        <div class="h-card-art" aria-hidden="true">
+          <div class="mini mini-debate">
+            <p class="mini-row"><b>Strategist</b><span class="tag hold">Draft: HOLD</span></p>
+            <p class="mini-row obj"><b>Risk manager</b><span>R1: cover the daily swings</span></p>
+            <p class="mini-row ok"><b>Risk manager</b><span class="tag ok">Approved, round 2</span></p>
+          </div>
+        </div>
+        <h3>Disagreement on purpose</h3>
+        <p>The strategist looks for returns; the risk manager protects you. A draft goes back with numbered objections until it survives, for up to three rounds. Then the Planner rules.</p>
+      </article>
+      <article class="h-card">
+        <div class="h-card-art" aria-hidden="true">
+          <div class="mini mini-ask">
+            <p class="mini-q"><span class="dot"></span>Is this rise a rebound in a longer fall?</p>
+            <p class="mini-path"><span>Risk manager</span><i></i><span>Planner</span><i></i><span>Market</span></p>
+            <p class="mini-a">One year of prices fetched</p>
+          </div>
+        </div>
+        <h3>It asks before it guesses</h3>
+        <p>When an agent is unsure, it asks the Planner, which can send an analyst back to its tools for a longer price history, the latest news or another page of a report.</p>
+      </article>
+      <article class="h-card">
+        <div class="h-card-art" aria-hidden="true">
+          <div class="mini mini-src">
+            <p class="mini-src-row bad"><span>Price source A</span><b>Failed</b></p>
+            <p class="mini-src-row good"><span>Price source B</span><b>Used</b></p>
+            <p class="mini-src-row warn"><span>Text in a PDF aimed at the AI</span><b>Removed</b></p>
+          </div>
+        </div>
+        <h3>Every number has a source</h3>
+        <p>Prices, ratios and risk scores come from tools, not from the model's memory. A failed source is swapped, and text in headlines or PDFs that tries to steer the agents is removed and reported.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ the decision ============ -->
+  <section class="h-section" id="decision" aria-labelledby="decTitle">
+    <div class="h-wrap h-feature">
+      <div class="h-feature-text">
+        <span class="label-chip">The decision</span>
+        <h2 id="decTitle">Worded for you. <em>Checkable line by line.</em></h2>
+        <p class="h-lead">If you do not own the stock, a sell reads as avoid and a hold as wait. Underneath sits the evidence: a scorecard, the chart with targets and a stop-loss, where every risk point came from, and the debate that changed the answer.</p>
+        <ul class="h-ticks">
+          <li>Sized to your money and your goals</li>
+          <li>Compared with your last analysis of the same stock</li>
+          <li>Attach an annual report and a document analyst checks it against the live data</li>
+        </ul>
+      </div>
+      <div class="h-feature-art">
+        <figure class="dsheet" aria-label="The decision from the recorded run">
+          <div class="dsheet-top">
+            <div>
+              <p class="dsheet-for">For a conservative investor who does not own it</p>
+              <p class="dsheet-verdict">Avoid</p>
+              <p class="dsheet-sub">Committee call <b>SELL</b>, high confidence</p>
+            </div>
+            <div class="dsheet-price"><b>₹2,465</b><span>RSI 81, overbought</span></div>
+          </div>
+          <div class="dsheet-score">
+            <span>Momentum</span><i style="--v:1"></i><b>10</b>
+            <span>Valuation</span><i style="--v:.7"></i><b>7</b>
+            <span>Profitability</span><i style="--v:.9"></i><b>9</b>
+            <span>Financial health</span><i style="--v:.8"></i><b>8</b>
+            <span>News</span><i style="--v:.8"></i><b>8</b>
+          </div>
+          <p class="dsheet-flags"><span class="amber">Entry point: stretched</span><span class="red">Deeply overbought</span></p>
+        </figure>
+        <figure class="dfloat" aria-hidden="true">
+          <p class="dfloat-k">Why it changed</p>
+          <p class="dfloat-v">Round 1 HOLD, round 2 SELL</p>
+          <p class="dfloat-n">A year of prices showed the rise was a rebound inside a longer fall.</p>
+        </figure>
+      </div>
+    </div>
+    <p class="h-wrap h-fine h-feature-cap">From the recorded run: a strong company at the wrong moment for this investor. Scores are computed from the run's own numbers.</p>
+  </section>
+
+  <!-- ============ every day ============ -->
+  <section class="h-section h-tint" id="daily" aria-labelledby="dailyTitle">
+    <div class="h-wrap h-split-head">
+      <div>
+        <span class="label-chip">After the analysis</span>
+        <h2 id="dailyTitle">It keeps watch <em>while the market is open.</em></h2>
+      </div>
+      <p class="h-lead">Follow companies and upload your holdings once. Briefs and alerts arrive in the app, and on Telegram or email if you turn them on.</p>
+    </div>
+    <ol class="h-wrap h-day">
+      <li><time>8:30</time><h3>Morning brief</h3><p>Last close, the 52-week range, overnight news and what to check before the open, for every company you follow.</p></li>
+      <li><time>9:00 to 3:30</time><h3>Alerts</h3><p>Checked every 30 minutes: a headline that can move the price, a move of 3% or more, or a level you set.</p></li>
+      <li><time>3:15</time><h3>Closing brief</h3><p>Today's profit or loss on your holdings, the biggest movers and the news behind them.</p></li>
+      <li><time>4 weeks later</time><h3>Track record</h3><p>Every call is checked against the price a month on, so you can see when the committee was right and when it was not.</p></li>
+    </ol>
+  </section>
+
+  <!-- ============ closing ============ -->
+  <section class="h-final" aria-labelledby="finalTitle">
+    <div class="h-wrap h-center">
+      <h2 id="finalTitle">Ask the committee about a stock <em>you are watching.</em></h2>
+      <div class="h-cta"><a class="h-btn" href="signup.html" id="finalCta">Start free</a><a class="h-btn h-btn-ghost" href="login.html">Sign in</a></div>
+      <p class="h-final-fine">Educational analysis, not investment advice. Free market data can be delayed by up to 15 minutes, and model judgement can be wrong within the guardrails.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="h-foot">
+  <div class="h-wrap h-foot-in">
+    <span class="h-brand small"><img src="img/mark.svg" alt="" width="22" height="22"><span>Quantum Advisor</span></span>
+    <span>Built by <a href="https://github.com/sourav-singh-10">Sourav</a>, <a href="https://github.com/Utsav99552">Utsav</a>, <a href="https://github.com/prapulreddy7">Prapul</a> and <a href="https://github.com/Sumitpathak29">Sumit</a></span>
+    <span><a href="terms.html">Terms of use</a> · <a href="https://github.com/sourav-singh-10/Quantum-Advisor">Source code and design documents</a></span>
+  </div>
+</footer>
+
+<script src="js/minutes.js" defer></script>
+<script src="js/agent-flow.js" defer></script>
+<script src="js/sequence.js" defer></script>
+<script src="js/replay.js" defer></script>
+<script src="js/home.js" defer></script>
+</body>
+</html>
