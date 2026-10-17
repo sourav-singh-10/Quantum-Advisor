@@ -19,6 +19,8 @@ def fetch_fundamentals(symbol: str) -> dict:
             "sector": info.get("sector"),
             "marketCapCr": round(info["marketCap"] / 1e7) if info.get("marketCap") else None,
             "name": info.get("longName") or info.get("shortName"),
+            "eps": round(float(info["trailingEps"]), 2) if info.get("trailingEps") else None,
+            "revenueCr": round(info["totalRevenue"] / 1e7) if info.get("totalRevenue") else None,
         }
         if all(out[k] is None for k in ("pe", "roe", "de", "profitMargin")):
             raise ToolError(f"no fundamentals available for {symbol}.NS")

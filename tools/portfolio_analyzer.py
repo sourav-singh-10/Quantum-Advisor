@@ -13,48 +13,23 @@ FORMAT B — Zerodha Holdings Export (XLSX):
     Col[0] is always NaN (first column is blank in Zerodha exports).
 """
 
-import io
 import csv
+import io
+import math
+from concurrent.futures import ThreadPoolExecutor
+
 import pandas as pd
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  STATIC DATA
-# ─────────────────────────────────────────────────────────────────────────────
-PRICES = {
-    "IOC": 144.60, "BPCL": 285.50, "ONGC": 265.40, "GAIL": 170.00,
-    "PETRONET": 225.00, "HINDPETRO": 290.00, "RELIANCE": 1414.40,
-    "HDFCBANK": 790.00, "ICICIBANK": 1255.00, "SBIN": 680.00,
-    "AXISBANK": 1050.00, "KOTAKBANK": 1950.00, "INDUSINDBK": 760.00,
-    "BANDHANBNK": 155.00, "FEDERALBNK": 170.00, "PNB": 105.55,
-    "CANBK": 98.00, "UNIONBANK": 120.00, "BANKBARODA": 230.00,
-    "TCS": 2370.00, "INFY": 1235.00, "WIPRO": 189.00, "HCLTECH": 1345.00,
-    "TECHM": 1380.00, "LTI": 4200.00, "LTIM": 4200.00, "MPHASIS": 2100.00,
-    "COFORGE": 7200.00,
-    "MARUTI": 11500.00, "TATAMOTORS": 680.00, "MM": 2700.00,
-    "BAJAJAUTO": 8500.00, "EICHERMOT": 4900.00, "HEROMOTOCO": 3900.00,
-    "TVSMOTOR": 2200.00, "HYUNDAI": 1867.55,
-    "SUNPHARMA": 1580.00, "DRREDDY": 1150.00, "CIPLA": 1430.00,
-    "DIVISLAB": 4600.00, "BIOCON": 310.00, "AUROPHARMA": 1180.00,
-    "LUPIN": 1950.00,
-    "HINDUNILVR": 2300.00, "ITC": 395.00, "NESTLEIND": 2250.00,
-    "BRITANNIA": 4800.00, "DABUR": 510.00, "MARICO": 600.00, "GODREJCP": 1080.00,
-    "TATASTEEL": 135.00, "HINDALCO": 580.00, "JSWSTEEL": 980.00,
-    "VEDL": 400.00, "NMDC": 60.00, "COALINDIA": 375.00, "SAIL": 100.00,
-    "LT": 3250.00, "ULTRACEMCO": 10500.00, "GRASIM": 2600.00,
-    "ADANIPORTS": 1150.00, "BHARTIARTL": 1650.00, "POWERGRID": 290.00,
-    "ADANIENT": 2150.00,
-    "DMART": 4000.00, "TRENT": 5100.00, "DLF": 680.00, "GODREJPROP": 2100.00,
-    "PRESTIGE": 1400.00, "NTPC": 335.00, "TATAPOWER": 380.00,
-    "ADANIGREEN": 940.00,
-    "TITAN": 3200.00, "VOLTAS": 1400.00, "HAVELLS": 1450.00, "CROMPTON": 360.00,
-    "BAJFINANCE": 850.00, "BAJAJFINSV": 1600.00, "HDFCLIFE": 600.00,
-    "SBILIFE": 1400.00, "ICICIPRULI": 580.00,
-    "ASIANPAINT": 2200.00, "ZOMATO": 210.00, "PAYTM": 850.00,
-    "NYKAA": 140.00, "IRCTC": 780.00,
-    "GOLDBEES": 110.72, "GOLDBEES-E": 110.72,
-    "NIFTYBEES": 240.00, "BANKBEES": 490.00,
-}
+from tools import fundamentals_data, market_data
+from tools.base import ToolError
+from tools.indicators import compute_indicators
 
+MAX_LIVE_QUOTES = 30          # free data sources are rate-limited
+HIGH_VOL_DAILY_PCT = 2.5      # daily volatility above this counts as high
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  SECTOR NAMES (metadata only; prices and ratios are fetched live)
+# ─────────────────────────────────────────────────────────────────────────────
 SECTORS = {
     "IOC": "Oil & Gas", "BPCL": "Oil & Gas", "ONGC": "Oil & Gas",
     "GAIL": "Oil & Gas", "PETRONET": "Oil & Gas", "HINDPETRO": "Oil & Gas",
@@ -88,32 +63,51 @@ SECTORS = {
     "GOLDBEES": "ETF", "GOLDBEES-E": "ETF", "NIFTYBEES": "ETF", "BANKBEES": "ETF",
 }
 
-HIGH_VOL = {"TATASTEEL", "TATAMOTORS", "BAJFINANCE", "INDUSINDBK", "HINDPETRO",
-            "BPCL", "VEDL", "BIOCON", "SAIL", "PNB", "CANBK", "HYUNDAI"}
 
-PE_DATA = {
-    "IOC": 6.3, "BPCL": 9.5, "ONGC": 7.5, "GAIL": 12.0, "RELIANCE": 19.3,
-    "HDFCBANK": 15.5, "ICICIBANK": 17.9, "SBIN": 8.5, "AXISBANK": 16.0,
-    "KOTAKBANK": 22.0, "INDUSINDBK": 12.0, "PNB": 7.5,
-    "TCS": 18.3, "INFY": 20.0, "WIPRO": 17.0, "HCLTECH": 19.0, "TECHM": 22.0,
-    "MARUTI": 26.0, "TATAMOTORS": 18.0, "HYUNDAI": 24.0,
-    "BAJFINANCE": 25.0, "BHARTIARTL": 28.0,
-    "TATASTEEL": 15.0, "HINDALCO": 12.0,
-    "NTPC": 14.0, "TATAPOWER": 18.0,
-    "SUNPHARMA": 24.0, "DRREDDY": 22.0,
-}
+
+RENAMED = market_data.RENAMED
+
+
+def live_quote(ticker: str) -> dict:
+    """Latest close, daily volatility and P/E for one NSE ticker, from the first free
+    source that answers. Raises ToolError when no source has data."""
+    errors = []
+    for source in market_data.SOURCES:
+        try:
+            prices = market_data.get_price_history(ticker, source)
+            ind = compute_indicators(prices)
+            break
+        except ToolError as exc:
+            errors.append(f"{source}: {exc}")
+    else:
+        raise ToolError("; ".join(errors))
+    quote = {"price": ind["currentPrice"], "volatility": ind["volatility"], "source": source,
+             "trend": ind["trend"], "rsi": ind["rsi"], "pe": None, "sector": None,
+             "history": [round(x, 2) for x in prices[-60:]]}
+    try:
+        f = fundamentals_data.fetch_fundamentals(ticker)
+        quote["pe"], quote["sector"] = f.get("pe"), f.get("sector")
+    except ToolError:
+        pass
+    return quote
 
 
 def _safe_float(v, default=0.0):
+    """float(v), or ``default`` for blanks, text, NaN and infinity (empty Excel cells are NaN)."""
     try:
-        return float(v)
+        f = float(str(v).replace(",", "")) if isinstance(v, str) else float(v)
     except (TypeError, ValueError):
         return default
+    return f if math.isfinite(f) else default
 
 
 def _norm_ticker(raw):
-    """Normalise Zerodha tickers like 'GOLDBEES-E' → keep as-is but strip spaces."""
-    return str(raw).strip().upper()
+    """Upper-case and strip exchange suffixes people paste in: TCS.NS, TCS.BO, TCS-EQ."""
+    t = str(raw).strip().upper()
+    for suffix in (".NS", ".BO", ".NSE", ".BSE", "-EQ", "-BE"):
+        if t.endswith(suffix):
+            t = t[: -len(suffix)]
+    return t
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -190,7 +184,7 @@ def _parse_zerodha_sheet(df: pd.DataFrame):
 # ─────────────────────────────────────────────────────────────────────────────
 #  SIMPLE FORMAT PARSER  (ticker, quantity, buy_price)
 # ─────────────────────────────────────────────────────────────────────────────
-def _parse_simple_xlsx(file) -> list:
+def _parse_simple_xlsx(file, skipped: list | None = None) -> list:
     df = pd.read_excel(file, header=None)
     # Find header row: look for a row containing 'ticker' or 'symbol'
     header_idx = 0
@@ -213,6 +207,8 @@ def _parse_simple_xlsx(file) -> list:
         qty       = _safe_float(row.get("quantity", row.get("qty", 0)))
         buy_price = _safe_float(row.get("buy_price", row.get("price", 0)))
         if qty <= 0 or buy_price <= 0:
+            if skipped is not None:
+                skipped.append(f"{ticker}: {'quantity is 0 or missing' if qty <= 0 else 'buy price is missing'}")
             continue
         rows.append({"ticker": ticker, "quantity": qty,
                      "buy_price": buy_price, "current_price": None,
@@ -220,7 +216,7 @@ def _parse_simple_xlsx(file) -> list:
     return rows
 
 
-def _parse_simple_csv(file) -> list:
+def _parse_simple_csv(file, skipped: list | None = None) -> list:
     text   = file.read().decode("utf-8", errors="ignore")
     reader = csv.DictReader(io.StringIO(text))
     rows   = []
@@ -229,7 +225,11 @@ def _parse_simple_csv(file) -> list:
         ticker    = _norm_ticker(norm.get("ticker", norm.get("symbol", "")))
         qty       = _safe_float(norm.get("quantity", norm.get("qty", 0)))
         buy_price = _safe_float(norm.get("buy_price", norm.get("price", 0)))
-        if not ticker or qty <= 0 or buy_price <= 0:
+        if not ticker:
+            continue
+        if qty <= 0 or buy_price <= 0:
+            if skipped is not None:
+                skipped.append(f"{ticker}: {'quantity is 0 or missing' if qty <= 0 else 'buy price is missing'}")
             continue
         rows.append({"ticker": ticker, "quantity": qty,
                      "buy_price": buy_price, "current_price": None,
@@ -242,6 +242,27 @@ def _parse_simple_csv(file) -> list:
 # ─────────────────────────────────────────────────────────────────────────────
 class PortfolioAnalyzer:
 
+    def __init__(self, quote_fn=None, on_quote=None):
+        self.quote_fn = quote_fn or live_quote
+        self.on_quote = on_quote          # optional callback(ticker, quote|None, error|None) for tracing
+
+    def _quotes(self, tickers: list[str]) -> dict:
+        unique = list(dict.fromkeys(tickers))[:MAX_LIVE_QUOTES]
+
+        def one(t):
+            try:
+                q = self.quote_fn(t)
+                if self.on_quote:
+                    self.on_quote(t, q, None)
+                return t, q
+            except Exception as exc:          # one bad ticker must not stop the review
+                if self.on_quote:
+                    self.on_quote(t, None, str(exc))
+                return t, None
+
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            return dict(pool.map(one, unique))
+
     # ── Entry point ──────────────────────────────────────────────────────────
     def analyze_portfolio(self, file, filename: str):
         raw_rows = self._parse(file, filename)
@@ -251,14 +272,17 @@ class PortfolioAnalyzer:
                 "Expected Zerodha Holdings Export (.xlsx) or a CSV with "
                 "columns: ticker, quantity, buy_price"
             )
-        return self._build_analysis(raw_rows)
+        result = self._build_analysis(raw_rows)
+        result["skippedRows"] = list(getattr(self, "skipped", []))
+        return result
 
     # ── Parse dispatcher ─────────────────────────────────────────────────────
     def _parse(self, file, filename: str):
+        self.skipped = []
         if filename.endswith(".xlsx") or filename.endswith(".xlsm"):
             return self._parse_xlsx(file)
         elif filename.endswith(".csv"):
-            return _parse_simple_csv(file)
+            return _parse_simple_csv(file, self.skipped)
         else:
             raise Exception("Only .csv and .xlsx files are supported.")
 
@@ -285,55 +309,66 @@ class PortfolioAnalyzer:
 
         # 3. Fallback: treat first sheet as simple ticker/qty/price format
         file.seek(0)
-        return _parse_simple_xlsx(file)
+        return _parse_simple_xlsx(file, self.skipped)
 
     # ── Build full analysis from normalised rows ──────────────────────────────
     def _build_analysis(self, raw_rows: list):
         stocks       = []
         total_cost   = 0.0
         total_value  = 0.0
+        quotes       = self._quotes([r["ticker"] for r in raw_rows])
 
         for r in raw_rows:
             ticker    = r["ticker"]
             qty       = r["quantity"]
             buy_price = r["buy_price"]
 
-            # Resolve current price: file value → our static map → assume flat
-            current_price = (
-                r.get("current_price") or
-                PRICES.get(ticker) or
-                buy_price
-            )
-            if current_price == 0:
-                current_price = buy_price
+            # Current price: live quote -> price in the uploaded file -> buy price (flagged)
+            quote = quotes.get(ticker)
+            if quote:
+                current_price, price_source = quote["price"], f"live ({quote['source']})"
+            elif r.get("current_price"):
+                current_price, price_source = r["current_price"], "from your file"
+            else:
+                current_price, price_source = buy_price, "unavailable (buy price used)"
 
             cost_basis  = qty * buy_price
             current_val = qty * current_price
 
-            # Use file's P&L if available (more accurate), else compute
-            if r.get("pnl") is not None and r["pnl"] != 0:
-                pnl     = r["pnl"]
-                pnl_pct = r["pnl_pct"]
-            else:
-                pnl     = current_val - cost_basis
-                pnl_pct = (pnl / cost_basis * 100) if cost_basis else 0
+            pnl     = current_val - cost_basis
+            pnl_pct = (pnl / cost_basis * 100) if cost_basis else 0
 
             total_cost  += cost_basis
             total_value += current_val
 
-            sector      = r.get("sector") or SECTORS.get(ticker, "Other")
-            is_high_vol = ticker in HIGH_VOL
-            pe          = PE_DATA.get(ticker)
+            sector      = (r.get("sector") or SECTORS.get(ticker)
+                           or (quote or {}).get("sector") or "Other")
+            volatility  = (quote or {}).get("volatility")
+            is_high_vol = volatility is not None and volatility > HIGH_VOL_DAILY_PCT
+            pe          = (quote or {}).get("pe")
 
-            # Per-stock recommendation
-            if pnl_pct > 30 and pe and pe > 25:
-                rec = "SELL"
+            # Per-stock call. Uses the same trend/RSI reading as the full analysis so the
+            # two screens never disagree, and every call carries its own reason.
+            trend = (quote or {}).get("trend")
+            rsi   = (quote or {}).get("rsi")
+            if not price_source.startswith("live"):
+                rec, why = "REVIEW", "No live price found; check the NSE symbol before acting."
+                if ticker in RENAMED:
+                    why = f"No live price for {ticker}; it now trades as {RENAMED[ticker]}."
+            elif pnl_pct > 30 and pe and pe > 25:
+                rec, why = "SELL", f"Up {pnl_pct:.1f}% at a rich P/E of {pe:.0f}; consider booking part."
             elif pnl_pct < -15:
-                rec = "REVIEW"
+                rec, why = "REVIEW", f"Down {abs(pnl_pct):.1f}%; check the reason you bought still holds."
+            elif trend == "Downtrend":
+                rec, why = "HOLD", "Price is still falling; wait for the trend to turn before adding."
+            elif rsi is not None and rsi > 75:
+                rec, why = "HOLD", f"Overbought (RSI {rsi:.0f}) after a sharp rise; wait for a pullback."
             elif is_high_vol:
-                rec = "HOLD"
+                rec, why = "HOLD", f"Volatile ({volatility:.1f}% a day); keep the position size as is."
+            elif pnl_pct < 0:
+                rec, why = "BUY", "Below your cost and the trend is not falling; adding is reasonable."
             else:
-                rec = "HOLD" if pnl_pct >= 0 else "BUY"
+                rec, why = "HOLD", "In profit with a steady trend; keep holding."
 
             stocks.append({
                 "ticker":        ticker,
@@ -341,12 +376,19 @@ class PortfolioAnalyzer:
                 "buyPrice":      round(buy_price, 2),
                 "currentPrice":  round(current_price, 2),
                 "costBasis":     round(cost_basis, 2),
+                "trend":         trend,
+                "rsi":           rsi,
+                "history":       (quote or {}).get("history") or [],
+                "reason":        why,
                 "currentValue":  round(current_val, 2),
                 "pnl":           round(pnl, 2),
                 "pnlPct":        round(pnl_pct, 2),
                 "sector":        sector,
                 "recommendation": rec,
                 "isHighVol":     is_high_vol,
+                "volatility":    volatility,
+                "pe":            round(pe, 1) if pe else None,
+                "priceSource":   price_source,
             })
 
         if not stocks:
@@ -354,6 +396,9 @@ class PortfolioAnalyzer:
 
         total_pnl     = total_value - total_cost
         total_pnl_pct = (total_pnl / total_cost * 100) if total_cost else 0
+
+        for s in stocks:
+            s["weight"] = round(s["currentValue"] / total_value * 100, 1) if total_value else 0
 
         # Sector allocation
         sector_vals = {}
@@ -383,6 +428,7 @@ class PortfolioAnalyzer:
             "investmentStyle":      style,
             "advice":               advice,
             "recommendations":      recs,
+            "livePriced":           sum(1 for s in stocks if s["priceSource"].startswith("live")),
         }
 
     # ── Risk score (0–100) ────────────────────────────────────────────────────
@@ -445,38 +491,38 @@ class PortfolioAnalyzer:
         for s in stocks:
             w = s["currentValue"] / total_value * 100 if total_value else 0
             if w > 35:
-                advice.append(f"⚠️ {s['ticker']} is {w:.1f}% of your portfolio — consider trimming.")
+                advice.append(f"{s['ticker']} is {w:.1f}% of your portfolio – consider trimming.")
 
         for sec, pct in sector_alloc.items():
             if pct > 50:
-                advice.append(f"⚠️ {pct:.0f}% exposure to {sec} — consider diversifying.")
+                advice.append(f"{pct:.0f}% exposure to {sec} — consider diversifying.")
 
         if len(stocks) <= 3:
-            advice.append("📊 Very few stocks. Adding 4–8 more across sectors improves resilience.")
+            advice.append("Very few stocks. Adding 4–8 more across sectors improves resilience.")
 
         hv = [s["ticker"] for s in stocks if s["isHighVol"]]
         if hv:
-            advice.append(f"〰️ High-volatility stocks detected: {', '.join(hv)}. Consider setting stop-losses.")
+            advice.append(f"High daily volatility (>{HIGH_VOL_DAILY_PCT}%): {', '.join(hv)}. Consider setting stop-losses.")
 
         if div_score < 40:
-            advice.append("💡 Low diversification. Consider adding NIFTYBEES or GOLDBEES for broad market exposure.")
+            advice.append("Low diversification. Consider adding NIFTYBEES or GOLDBEES for broad market exposure.")
 
         for s in stocks:
-            pe = PE_DATA.get(s["ticker"])
+            pe = s.get("pe")
             if pe and pe > 28 and s["pnlPct"] > 20:
-                advice.append(f"📈 {s['ticker']} has premium P/E ({pe}x) and is up {s['pnlPct']:.1f}% — consider booking partial profits.")
+                advice.append(f"{s['ticker']} has premium P/E ({pe}x) and is up {s['pnlPct']:.1f}% — consider booking partial profits.")
 
         for s in stocks:
             if s["pnlPct"] < -10:
-                advice.append(f"📉 {s['ticker']} is down {abs(s['pnlPct']):.1f}% — review if fundamentals have changed.")
+                advice.append(f"{s['ticker']} is down {abs(s['pnlPct']):.1f}% — review if fundamentals have changed.")
 
         if risk_score > 60:
-            advice.append("🔄 High overall portfolio risk. Consider rebalancing — reduce concentrated positions.")
+            advice.append("High overall portfolio risk. Consider rebalancing — reduce concentrated positions.")
         elif risk_score > 40:
-            advice.append("🔄 Moderate portfolio risk. A quarterly rebalancing review is recommended.")
+            advice.append("Moderate portfolio risk. A quarterly rebalancing review is recommended.")
 
         if not advice:
-            advice.append("✅ Portfolio looks reasonably diversified. Keep monitoring quarterly.")
+            advice.append("Portfolio looks reasonably diversified. Keep monitoring quarterly.")
 
         return advice
 
@@ -488,11 +534,7 @@ class PortfolioAnalyzer:
             msg = ""
             if s["pnlPct"] > 25 and w > 25:
                 msg = f"Consider trimming — up {s['pnlPct']:.1f}% and heavily weighted at {w:.1f}%."
-            elif s["pnlPct"] < -20:
-                msg = f"Down {abs(s['pnlPct']):.1f}% — evaluate if investment thesis still holds."
-            elif s["recommendation"] == "BUY":
-                msg = f"Appears attractive for accumulation on dips."
             else:
-                msg = f"Maintain current position."
+                msg = s.get("reason") or "Maintain current position."
             recs.append({"ticker": s["ticker"], "action": s["recommendation"], "note": msg})
         return recs
