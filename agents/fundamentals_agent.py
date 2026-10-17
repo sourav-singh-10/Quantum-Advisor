@@ -35,11 +35,24 @@ class FundamentalsAnalyst(BaseAgent):
 
         prompt = (f"Fundamentals for {ticker} ({data.get('name')}, sector {data.get('sector')}): "
                   f"PE {data['pe']}, ROE {data['roe']}%, debt/equity {data['de']}, "
-                  f"profit margin {data['profitMargin']}%, market cap INR {data['marketCapCr']} cr. "
+                  f"profit margin {data['profitMargin']}%, EPS INR {data.get('eps')}, revenue INR "
+                  f"{data.get('revenueCr')} cr, market cap INR {data['marketCapCr']} cr. "
                   f"Rule-based score {rules['healthScore']}/100 ({', '.join(rules['notes'])}); "
                   f"missing: {rules['missing']}. Focus: {instruction or 'overall health'}.")
         view, meta = self.decide(ctx, prompt, FundamentalsView, fallback)
-        return {**{k: data[k] for k in ("pe", "roe", "de", "profitMargin", "sector")},
+        return {**{k: data.get(k) for k in ("pe", "roe", "de", "profitMargin", "sector", "eps",
+                                            "revenueCr")},
                 "healthScore": rules["healthScore"], "financialHealth": view.financialHealth,
                 "fundamentalsSummary": view.summary, "fundamentalsPoints": view.key_points,
-                "fundamentalsAvailable": True, "_llm": meta}
+                "companyName": data.get("name"), "fundamentalsAvailable": True, "_llm": meta}
+
+    # ------------------------------------------------------------ follow-up questions
+    def followup_facts(self, ctx, ticker: str, question: str, previous: dict):
+        keys = ("companyName", "sector", "pe", "eps", "roe", "de", "profitMargin", "revenueCr",
+                "healthScore", "financialHealth")
+        facts = [f"{k}: {previous.get(k)}" for k in keys if previous.get(k) is not None]
+        facts += [f"note: {p}" for p in (previous.get("fundamentalsPoints") or [])[:3]]
+        rule = (f"Health {previous.get('financialHealth', 'Unknown')} "
+                f"(score {previous.get('healthScore')}): P/E {previous.get('pe')}, ROE "
+                f"{previous.get('roe')}%, debt/equity {previous.get('de')}.")
+        return facts, rule

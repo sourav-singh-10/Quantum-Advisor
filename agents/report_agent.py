@@ -20,6 +20,10 @@ class ReportAgent(BaseAgent):
             + (f" ({', '.join(o['text'] for o in d['critique']['objections'])})"
                if d["critique"]["objections"] else "")
             for d in debate)
+        asked = "; ".join(f"{f['from']} asked {f['agent']}: {f['question']} -> {f['answer']}"
+                          for f in state.get("followups") or [])
+        if asked:
+            disagreement += f". Evidence asked for: {asked}"
 
         def fallback():
             body = (f"{m['ticker']} trades at {m['priceDisplay']} in a {m["trend"].lower()} "
