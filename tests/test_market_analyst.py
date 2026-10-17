@@ -33,3 +33,11 @@ def test_all_sources_down_raises_tool_error(monkeypatch, tmp_path):
     ctx, _ = make_ctx(tmp_path, available=False)
     with pytest.raises(ToolError, match="no price source worked"):
         MarketAnalyst().run(ctx, "TESTCO")
+
+
+def test_returns_recent_price_history_for_the_chart(monkeypatch, tmp_path):
+    patch_data(monkeypatch)
+    ctx, _ = make_ctx(tmp_path, available=False)
+    out = MarketAnalyst().run(ctx, "TESTCO")
+    assert 20 <= len(out["priceHistory"]) <= 120
+    assert out["priceHistory"][-1] == out["currentPrice"]

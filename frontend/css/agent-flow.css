@@ -1,0 +1,137 @@
+/* The agent flow (js/agent-flow.js). Colours are variables so the same map sits on the
+   light pages and on the dark hero. */
+.af {
+  --af-stage: #FFFFFF; --af-grid: #EDF1F6; --af-frame: #E3E8EF;
+  --af-card: #FFFFFF; --af-line: #DCE3EC; --af-text: #0D1526; --af-muted: #69758C;
+  --af-hub: #0D1526; --af-hub-text: #FFFFFF; --af-hub-muted: #A7B4CA;
+  --af-edge: #D7DEE8; --af-seen: #8EA2BF; --af-hot: #F2B300;
+  --af-blue: #1D6CF2; --af-red: #E5484D; --af-green: #12A150; --af-violet: #7A5AF8; --af-amber: #E0A100;
+  --af-shadow: drop-shadow(0 1px 1.5px rgba(13, 21, 38, .06)) drop-shadow(0 8px 18px rgba(13, 21, 38, .07));
+  font-family: var(--font, 'Plus Jakarta Sans', system-ui, sans-serif);
+  color: var(--af-text);
+}
+.af-dark {
+  --af-stage: #0E1424; --af-grid: #18203A; --af-frame: #1E2843;
+  --af-card: #141C31; --af-line: #26314F; --af-text: #F3F6FC; --af-muted: #8D9AB5;
+  --af-hub: #1D6CF2; --af-hub-text: #FFFFFF; --af-hub-muted: #D4E3FF;
+  --af-edge: #253050; --af-seen: #5B6E96;
+  --af-shadow: drop-shadow(0 10px 22px rgba(0, 0, 0, .35));
+}
+
+/* ---- checks: the run's progress, ticked off as it happens ---- */
+.af-checks {
+  list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;
+  margin: 0 auto 14px; padding: 6px; width: fit-content; max-width: 100%;
+  background: var(--af-card); border: 1px solid var(--af-frame); border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(13, 21, 38, .04);
+}
+.af-checks li {
+  display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px 6px 8px; border-radius: 9px;
+  font-size: 13px; font-weight: 600; color: var(--af-muted); white-space: nowrap;
+  transition: background-color .3s, color .3s;
+}
+.af-checks li[hidden] { display: none; }
+.af-checks li i {
+  width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--af-line); flex: none; position: relative;
+  transition: background-color .3s, border-color .3s;
+}
+.af-checks li.active { color: var(--af-text); background: color-mix(in srgb, var(--af-hot) 12%, transparent); }
+.af-checks li.active i { border-color: var(--af-hot); border-top-color: transparent; animation: af-spin .9s linear infinite; }
+.af-checks li.done { color: var(--af-text); }
+.af-checks li.done i { background: var(--af-green); border-color: var(--af-green); }
+.af-checks li.done i::after { content: ''; position: absolute; left: 4.2px; top: 1.6px; width: 3.6px; height: 7px;
+  border: solid #fff; border-width: 0 1.8px 1.8px 0; transform: rotate(45deg); }
+.af-checks li.warn { color: var(--af-text); background: color-mix(in srgb, var(--af-red) 8%, transparent); }
+.af-checks li.warn i { background: var(--af-amber); border-color: var(--af-amber); }
+.af-checks li.warn i::after { content: '!'; position: absolute; inset: 0; color: #fff; font-size: 11px; font-weight: 800; line-height: 13px; text-align: center; }
+
+/* ---- the map ---- */
+.af-stage {
+  background: var(--af-stage); border: 1px solid var(--af-frame); border-radius: 20px;
+  padding: clamp(6px, 1.4vw, 18px); overflow: hidden;
+}
+.af-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.af-gridline { fill: none; stroke: var(--af-grid); stroke-width: 1; }
+
+.af-edge { fill: none; stroke: var(--af-edge); stroke-width: 1.6; stroke-linejoin: round; transition: stroke .5s, stroke-width .3s; }
+.af-edge.seen { stroke: var(--af-seen); stroke-width: 1.8; }
+.af-edge.hot { stroke: var(--af-hot); stroke-width: 2.6; }
+.af-edge.objection { stroke: var(--af-red); }
+.af-edge.approve { stroke: var(--af-green); }
+.af-edge.follow { stroke: var(--af-violet); stroke-dasharray: 6 5; }
+.af-edge.seen.objection, .af-edge.seen.approve, .af-edge.seen.follow { stroke-width: 1.8; opacity: .85; }
+.af-loop { stroke-dasharray: 3 4; }
+.af-port { fill: var(--af-stage); stroke: var(--af-edge); stroke-width: 1.6; transition: stroke .4s; }
+.af-port.on { stroke: var(--af-blue); }
+
+.af-pulse { fill: var(--af-hot); }
+.af-halo { fill: var(--af-hot); opacity: .22; }
+.af-pulse.objection, .af-halo.objection { fill: var(--af-red); }
+.af-pulse.approve, .af-halo.approve { fill: var(--af-green); }
+.af-pulse.follow, .af-halo.follow { fill: var(--af-violet); }
+
+.af-node { filter: var(--af-shadow); transition: opacity .4s; }
+.af-card { fill: var(--af-card); stroke: var(--af-line); stroke-width: 1.2; transition: stroke .3s, stroke-width .3s, fill .3s; }
+.af-ico path { fill: none; stroke: var(--af-muted); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: stroke .3s; }
+.af-title { font-size: 15.5px; font-weight: 700; fill: var(--af-text); letter-spacing: -0.01em; }
+.af-status { font-size: 12.5px; font-weight: 500; fill: var(--af-muted); }
+.af-badge circle { fill: none; stroke: var(--af-line); stroke-width: 1.5; transition: fill .3s, stroke .3s; }
+.af-mark { fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.af-node.hub .af-card { fill: var(--af-hub); stroke: var(--af-hub); }
+.af-node.hub .af-title { fill: var(--af-hub-text); font-size: 16.5px; }
+.af-node.hub .af-status { fill: var(--af-hub-muted); }
+.af-node.hub .af-ico path { stroke: var(--af-hub-text); }
+.af-node.hub .af-badge circle { stroke: rgba(255, 255, 255, .28); }
+.af-node.you .af-card { stroke: var(--af-blue); stroke-width: 1.4; }
+.af-node.you .af-ico path { stroke: var(--af-blue); }
+
+.af-node.working .af-card { stroke: var(--af-hot); stroke-width: 1.8; }
+.af-node.working .af-badge circle { stroke: var(--af-hot); stroke-dasharray: 30 18; animation: af-spin 1s linear infinite; transform-origin: 0 0; }
+.af-node.hub.working .af-card { stroke: var(--af-hot); }
+.af-node.done .af-badge circle { fill: var(--af-green); stroke: var(--af-green); }
+.af-node.done .af-ico path { stroke: var(--af-text); }
+.af-node.hub.done .af-ico path { stroke: var(--af-hub-text); }
+.af-node.warn .af-badge circle { fill: var(--af-amber); stroke: var(--af-amber); }
+.af-node.warn .af-card { stroke: var(--af-amber); stroke-width: 1.6; }
+.af-node.failed .af-badge circle { fill: var(--af-red); stroke: var(--af-red); }
+.af-node.failed .af-card { stroke: var(--af-red); stroke-width: 1.6; stroke-dasharray: 5 4; }
+.af-node.skipped { opacity: .42; }
+.af-node.skipped .af-card { stroke-dasharray: 4 4; fill: transparent; }
+.af-node.skipped .af-badge circle { fill: var(--af-line); }
+.af-node.skipped .af-mark { stroke: var(--af-muted); }
+.af-node.fallback .af-status { font-style: italic; }
+.af-node.fallback.done .af-badge circle { fill: var(--af-muted); stroke: var(--af-muted); }
+
+.af-node.active .af-card { stroke: var(--af-blue); stroke-width: 2.2; }
+.af-node.active { filter: var(--af-shadow) drop-shadow(0 0 10px color-mix(in srgb, var(--af-blue) 40%, transparent)); }
+.af-node.hub.active { filter: drop-shadow(0 0 16px color-mix(in srgb, var(--af-blue) 70%, transparent)); }
+.af-node.hub.active .af-card { stroke: #6FA6FF; }
+
+/* ---- legend ---- */
+.af-legend { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; margin: 12px 0 0; padding: 0; font-size: 12.5px; color: var(--af-muted); }
+.af-legend li { display: inline-flex; align-items: center; gap: 7px; }
+.af-legend li::before { content: ''; width: 18px; height: 0; border-top: 2.5px solid var(--af-seen); border-radius: 2px; }
+.af-legend .lg-now::before { border-color: var(--af-hot); }
+.af-legend .lg-obj::before { border-color: var(--af-red); }
+.af-legend .lg-ok::before { border-color: var(--af-green); }
+.af-legend .lg-ask::before { border-top-style: dashed; border-color: var(--af-violet); }
+.af-legend .lg-skip::before { width: 14px; height: 10px; border: 1.5px dashed var(--af-muted); border-radius: 3px; }
+
+@keyframes af-spin { to { transform: rotate(360deg); } }
+
+.af-tall .af-title { font-size: 15px; }
+.af-tall .af-status { font-size: 12.5px; }
+@media (max-width: 640px) {
+  .af-checks { gap: 2px; padding: 4px; justify-content: flex-start; }
+  .af-checks li { font-size: 12px; padding: 5px 8px 5px 6px; }
+  .af-legend { font-size: 12px; gap: 4px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .af-checks li.active i, .af-node.working .af-badge circle { animation: none; }
+}
+.af-caption { font-size: 13px; font-weight: 600; fill: var(--af-muted); text-anchor: middle; letter-spacing: .01em; }
+@media (max-width: 640px) {
+  .af-checks { flex-wrap: nowrap; overflow-x: auto; width: 100%; scrollbar-width: none; justify-content: flex-start; }
+  .af-checks::-webkit-scrollbar { display: none; }
+}

@@ -3,176 +3,401 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QuantumAdvisor</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<title>Quantum Advisor</title>
+<link rel="preload" href="fonts/plus-jakarta-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/watch.css">
+<link rel="stylesheet" href="css/shell.css">
+<link rel="stylesheet" href="css/agent-flow.css">
+<link rel="stylesheet" href="css/live.css">
+<link rel="stylesheet" href="css/system.css">
+<link rel="icon" href="img/mark.svg" type="image/svg+xml">
 </head>
 <body>
 
-<!-- ═══════════════ HEADER ═══════════════ -->
-<header class="app-header">
-  <button class="hamburger-btn" onclick="toggleDrawer()" title="Menu">☰</button>
-  <div class="logo-dot"></div>
-  <span class="app-title">QuantumAdvisor</span>
-  <span class="app-sub" style="display:none" id="pageLabel">MULTI-AGENT ANALYSIS</span>
-  <div class="header-right">
-    <div class="profile-area" onclick="toggleDrawer()">
-      <span class="profile-icon">👤</span>
-      <span class="profile-email" id="profileEmail">Loading…</span>
+<header class="topbar">
+  <a class="brand" href="/">
+    <img class="brand-mark" src="img/mark.svg" alt="">
+    <span class="brand-name">Quantum Advisor</span>
+  </a>
+  <nav class="main-nav" aria-label="Sections">
+    <a class="nav-link" href="#today" data-page="today"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z"/></svg><span>Today</span></a>
+    <a class="nav-link" href="#analyse" data-page="analyse"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><span>Analyse</span></a>
+    <a class="nav-link" href="#portfolio" data-page="portfolio"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7" width="17" height="12.5" rx="2"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3.5 12.5h17"/></svg><span>Portfolio</span></a>
+    <a class="nav-link" href="#watchlist" data-page="watchlist"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5l2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg><span>Watchlist</span> <span class="tab-badge" data-badge hidden></span></a>
+  </nav>
+  <div class="user-menu">
+    <button type="button" class="user-btn" id="userBtn" aria-haspopup="true" aria-expanded="false" aria-controls="userMenu">
+      <span class="avatar" id="avatar" aria-hidden="true">?</span><span class="user-name" id="who">Checking…</span>
+    </button>
+    <div class="menu" id="userMenu" hidden>
+      <p class="menu-email" id="menuEmail"></p>
+      <a href="#history" data-page="history">History and track record</a>
+      <a href="#profile" data-page="profile">Profile, goals and notifications</a>
+      <a href="/" >About Quantum Advisor</a>
+      <button type="button" id="signOut">Sign out</button>
     </div>
   </div>
 </header>
-
-<!-- ═══════════════ SIDE DRAWER ═══════════════ -->
-<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
-<nav class="drawer" id="drawer">
-  <div class="drawer-head">
-    <div class="logo-dot"></div>
-    <span class="drawer-brand">QuantumAdvisor</span>
-    <button class="drawer-close" onclick="closeDrawer()">✕</button>
-  </div>
-  <div class="drawer-nav">
-    <button class="nav-item active" id="navStock" onclick="switchPage('stock')">
-      <span class="nav-icon">📈</span> Single Stock Analysis
-    </button>
-    <button class="nav-item" id="navPortfolio" onclick="switchPage('portfolio')">
-      <span class="nav-icon">📂</span> Portfolio Analysis
-    </button>
-    <div class="nav-divider"></div>
-    <div style="padding:8px 14px; font-size:.72rem; color:var(--muted); font-family:var(--mono); text-transform:uppercase; letter-spacing:.07em;">Account</div>
-    <div style="padding:6px 14px; font-size:.8rem; color:var(--text);" id="drawerEmail">—</div>
-  </div>
-  <div class="nav-logout">
-    <button class="logout-btn" onclick="doLogout()">
-      <span>🔓</span> Sign Out
-    </button>
-  </div>
+<nav class="bottom-nav" aria-label="Sections">
+  <a class="bnav-link" href="#today" data-page="today"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z"/></svg><span>Today</span></a>
+  <a class="bnav-link" href="#analyse" data-page="analyse"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><span>Analyse</span></a>
+  <a class="bnav-link" href="#portfolio" data-page="portfolio"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7" width="17" height="12.5" rx="2"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3.5 12.5h17"/></svg><span>Portfolio</span></a>
+  <a class="bnav-link" href="#watchlist" data-page="watchlist"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5l2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg><span>Watchlist</span> <span class="tab-badge" data-badge hidden></span></a>
 </nav>
 
-<!-- ═══════════════ PAGES ═══════════════ -->
+<div class="notice" id="healthNotice" hidden></div>
 
-<!-- PAGE: Stock Analysis (original) -->
-<div class="page active" id="pageStock">
-  <div class="layout">
-    <!-- FORM -->
-    <div class="form-panel">
-      <div class="panel-title">Investment Analysis</div>
-      <div class="panel-sub">Fill in the details below to get started</div>
-      <div class="field">
-        <label>📈 Stock Ticker (NSE Symbol)</label>
-        <input type="text" id="ticker" value="RELIANCE" oninput="this.value=this.value.toUpperCase()">
-        <div class="hint">Any NSE symbol, e.g. RELIANCE, TCS, HDFCBANK</div>
+<!-- ======================= TODAY ======================= -->
+<main class="page" id="page-today" aria-labelledby="todayTitle">
+  <div class="today-head">
+    <div>
+      <p class="today-date" id="todayDate"></p>
+      <h1 id="todayTitle">Hello</h1>
+      <p class="today-market" id="todayMarket"></p>
+    </div>
+    <form class="today-search" id="todaySearch" role="search">
+      <label class="sr-only" for="todayInput">Analyse a company</label>
+      <div class="suggest-wrap">
+        <input id="todayInput" placeholder="Analyse a company, e.g. Infosys" autocomplete="off" spellcheck="false"
+               role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="todaySuggest">
+        <ul class="suggest" id="todaySuggest" role="listbox" hidden></ul>
       </div>
-      <div class="field">
-        <label>💰 Investment Amount (₹)</label>
-        <input type="number" id="portfolio" value="50000" min="1000" step="1000">
-        <div class="hint">Total capital you plan to deploy</div>
+      <button class="primary" type="submit">Analyse</button>
+    </form>
+  </div>
+  <div class="today-setup" id="todaySetup" hidden></div>
+  <div class="today-grid">
+    <div class="today-main">
+      <section class="card t-brief" id="tBrief" aria-labelledby="tBriefTitle"></section>
+      <section class="card" id="tHoldings" aria-labelledby="tHoldTitle"></section>
+      <section class="card" id="tRecent" aria-labelledby="tRecentTitle"></section>
+    </div>
+    <div class="today-side">
+      <section class="card" id="tAlerts" aria-labelledby="tAlertsTitle"></section>
+      <section class="card" id="tWatch" aria-labelledby="tWatchTitle"></section>
+      <section class="card" id="tGoals" aria-labelledby="tGoalsTitle"></section>
+    </div>
+  </div>
+</main>
+
+<!-- ======================= ANALYSE ======================= -->
+<main class="page" id="page-analyse" aria-labelledby="askTitle">
+  <div class="analyse">
+    <form class="ask" id="brief" novalidate>
+      <h1 id="askTitle">Analyse a stock</h1>
+      <div class="ask-row">
+        <div class="suggest-wrap">
+          <label class="sr-only" for="ticker">Company or NSE symbol</label>
+          <input class="ticker" id="ticker" name="ticker" value="RELIANCE" autocomplete="off" spellcheck="false" required
+                 placeholder="Company or NSE symbol"
+                 role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="tickerList">
+          <ul class="suggest" id="tickerList" role="listbox" hidden></ul>
+        </div>
+        <button class="primary" id="runBtn" type="submit">Run the analysis</button>
       </div>
-      <div class="field">
-        <label>⏳ Investment Horizon</label>
-        <div class="select-wrap">
-          <select id="horizon">
-            <option value="Short-term">Less than 1 year</option>
-            <option value="Medium-term" selected>1–3 years</option>
-            <option value="Long-term">More than 5 years</option>
-          </select>
+      <div class="chips" aria-label="Try one">
+        <span class="chips-label">Try</span>
+        <button type="button" class="chip" data-t="TCS">TCS</button>
+        <button type="button" class="chip" data-t="RELIANCE">RELIANCE</button>
+        <button type="button" class="chip" data-t="HDFCBANK">HDFCBANK</button>
+        <button type="button" class="chip" data-t="INFY">INFY</button>
+        <button type="button" class="chip" data-t="ITC">ITC</button>
+      </div>
+      <div class="ask-meta">
+        <div class="you-card" id="youCard" hidden>
+          <div>
+            <p class="you-label">Analysing for you</p>
+            <p class="you-line" id="youLine"></p>
+            <p class="you-goal" id="youGoal"></p>
+            <p class="you-goal" id="youAvoid"></p>
+          </div>
+          <div class="you-links">
+            <button type="button" class="link-btn" id="youEdit" aria-controls="profileFields" aria-expanded="false">Change for this analysis</button>
+            <button type="button" class="link-btn" id="youProfile">Edit profile and goals</button>
+          </div>
+        </div>
+        <div class="doc-box">
+          <p class="you-label">Annual report or results <span class="hint">(optional PDF, up to 15 MB)</span></p>
+          <div class="doc-pick">
+            <input type="file" id="docFile" accept="application/pdf,.pdf" hidden>
+            <button type="button" class="secondary small" id="docChoose">Attach a PDF</button>
+            <span class="doc-name" id="docName">None attached</span>
+            <button type="button" class="link-btn" id="docClear" hidden>Remove</button>
+          </div>
+          <p class="hint">The document analyst reads it and checks it against the live data.</p>
         </div>
       </div>
-      <div class="field">
-        <label>📉 React to a 20% Drop?</label>
-        <div class="select-wrap">
-          <select id="risk">
-            <option value="Conservative">Sell — cut losses</option>
+      <div id="profileFields">
+        <p class="you-intro" id="youIntro">Tell us about you once. It is saved to your profile, so next time you only pick a company.</p>
+        <p class="you-intro" id="youEditing" hidden>Changes apply to this analysis. <button type="button" class="link-btn" id="youReset">Use my saved details</button></p>
+        <div class="field">
+          <label for="portfolioValue">Money you could invest (₹)</label>
+          <input id="portfolioValue" type="number" min="1000" step="1000" value="100000">
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label for="age">Age</label>
+            <input id="age" type="number" min="18" max="100" value="30">
+          </div>
+          <div class="field">
+            <label for="experience">Experience</label>
+            <select id="experience">
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate" selected>Some years</option>
+              <option value="Experienced">5+ years</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="timeHorizon">When will you need this money?</label>
+          <select id="timeHorizon">
+            <option value="Short-term">Within a year</option>
+            <option value="Medium-term" selected>In 1 to 3 years</option>
+            <option value="Long-term">In 5 years or more</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="riskAppetite">If it fell 20% next month, you would…</label>
+          <select id="riskAppetite">
+            <option value="Conservative">Sell to stop the loss</option>
             <option value="Moderate" selected>Hold and wait</option>
-            <option value="Aggressive">Buy more — opportunity!</option>
+            <option value="Aggressive">Buy more</option>
           </select>
         </div>
-      </div>
-      <div class="field">
-        <label>🧑 Investment Experience</label>
-        <div class="select-wrap">
-          <select id="experience">
-            <option value="Beginner">Beginner (0–1 yr)</option>
-            <option value="Intermediate">Intermediate (1–4 yr)</option>
-            <option value="Experienced" selected>Experienced (5+ yr)</option>
-          </select>
+        <div class="field">
+          <label for="goal">Your goal <span class="hint">(optional)</span></label>
+          <textarea id="goal" rows="2" maxlength="300" placeholder="Saving for a house down-payment in 3 years"></textarea>
         </div>
+        <label class="check"><input type="checkbox" id="remember" checked> <span id="rememberText">Save to my profile</span></label>
       </div>
-      <div class="field">
-        <label>🎂 Your Age</label>
-        <input type="number" id="age" value="30" min="18" max="100">
-      </div>
-      <div class="field">
-        <label>🎯 Your Goal (optional)</label>
-        <textarea id="goal" rows="2" maxlength="300" placeholder="e.g. Saving for a house in 3 years"></textarea>
-        <div class="hint">The Profile agent turns this into constraints</div>
-      </div>
-      <button class="run-btn" id="runBtn" onclick="runAnalysis()">
-        <span>⚡</span> Run AI Analysis
-      </button>
-    </div>
-    <!-- RESULTS -->
-    <div class="results-panel">
-      <div class="empty-state" id="emptyState">
-        <div class="empty-icon">📊</div>
-        <p>Enter a stock ticker and click <strong>Run AI Analysis</strong> to get your personalised report.</p>
-      </div>
-      <div id="agentFeed" class="agent-feed" style="display:none"></div>
-      <div id="resultsContent" style="display:none"></div>
+    </form>
+
+    <div class="analyse-out">
+      <div id="decision" hidden></div>
+      <section class="room" id="room" aria-labelledby="roomTitle">
+        <div class="room-head">
+          <h2 id="roomTitle">The committee at work</h2>
+          <span class="room-status" id="roomStatus" aria-live="polite">Waiting for a stock.</span>
+          <span class="timer" id="timer" hidden>0:00</span>
+          <button type="button" class="link-btn room-toggle" id="roomToggle" aria-expanded="true" hidden>Hide</button>
+        </div>
+        <ol class="stages" id="stages" aria-hidden="true" hidden>
+          <li data-stage="brief"><span>1</span>Brief</li>
+          <li data-stage="plan"><span>2</span>Plan</li>
+          <li data-stage="research"><span>3</span>Research</li>
+          <li data-stage="check"><span>4</span>Check</li>
+          <li data-stage="debate"><span>5</span>Debate</li>
+          <li data-stage="decide"><span>6</span>Decide</li>
+        </ol>
+        <div class="room-body">
+          <div class="board-wrap">
+            <div class="live" id="live">
+              <div class="live-top">
+                <div class="live-now" aria-live="polite">
+                  <p class="live-route" id="liveRoute">The committee is waiting for a stock.</p>
+                  <p class="live-text" id="liveText">Pick a company above. Every message between the agents travels across this map as it happens.</p>
+                </div>
+                <div class="live-side">
+                  <div class="needle" aria-label="The committee's call so far">
+                    <div class="needle-track"><span>Sell</span><span>Hold</span><span>Buy</span><i id="liveNeedle" hidden></i></div>
+                    <p class="needle-note" id="liveNeedleNote">No call yet.</p>
+                  </div>
+                  <dl class="live-stats">
+                    <div><dd id="lsMsg">0</dd><dt>messages</dt></div>
+                    <div><dd id="lsTools">0</dd><dt>tool calls</dt></div>
+                    <div><dd id="lsLlm">0</dd><dt>model decisions</dt></div>
+                    <div><dd id="lsAsk">0</dd><dt>questions asked</dt></div>
+                  </dl>
+                </div>
+              </div>
+              <div class="live-graph" id="liveGraph"></div>
+            </div>
+            <button type="button" class="link-btn view-toggle" id="viewToggle" aria-pressed="false" hidden>Show the seats instead</button>
+            <div class="board" id="board" hidden>
+              <svg class="links" id="links" aria-hidden="true"></svg>
+              <div class="seat" data-agent="ProfileAgent" data-area="profile"><span class="badge">rules</span><div class="who">Profile</div><div class="role">Reads your situation and goal</div><div class="state">Idle</div></div>
+              <div class="seat" data-agent="MarketAnalyst" data-area="market"><span class="badge">rules</span><div class="who">Market analyst</div><div class="role">Prices, trend, volatility</div><div class="state">Idle</div></div>
+              <div class="seat" data-agent="FundamentalsAnalyst" data-area="fund"><span class="badge">rules</span><div class="who">Fundamentals</div><div class="role">Valuation, profit, debt</div><div class="state">Idle</div></div>
+              <div class="seat" data-agent="NewsAnalyst" data-area="news"><span class="badge">rules</span><div class="who">News analyst</div><div class="role">Headlines and their weight</div><div class="state">Idle</div></div>
+              <div class="seat" data-agent="DocumentAnalyst" data-area="docs"><span class="badge">rules</span><div class="who">Document analyst</div><div class="role">Reads your company PDF</div><div class="state">Idle</div></div>
+              <div class="seat planner" data-agent="Planner"><span class="badge">rules</span><div class="who">Planner</div><div class="role">Plans the work, re-plans, breaks ties</div><div class="state">Idle</div></div>
+              <div class="seat" data-agent="StrategyAgent" data-area="strategy"><span class="badge">rules</span><div class="who">Strategist</div><div class="role">Proposes buy, hold or sell</div><div class="state">Idle</div></div>
+              <div class="seat" data-agent="RiskManager" data-area="risk"><span class="badge">rules</span><div class="who">Risk manager</div><div class="role">Challenges the strategist</div><div class="state">Idle</div></div>
+              <div class="seat" data-agent="PortfolioAgent" data-area="portfolio"><span class="badge">rules</span><div class="who">Portfolio</div><div class="role">Sizes the position for you</div><div class="state">Idle</div></div>
+              <div class="seat" data-agent="ReportAgent" data-area="report"><span class="badge">rules</span><div class="who">Reporter</div><div class="role">Writes up the decision</div><div class="state">Idle</div></div>
+            </div>
+          </div>
+          <details class="minutes" id="minutesBox" open>
+            <summary class="minutes-head"><h3>Execution log</h3><span class="minutes-count" id="minutesCount"></span></summary>
+            <p class="empty" id="minutesEmpty">Every message between the agents is listed here, in order, as it happens.</p>
+            <ol id="minutes" aria-live="off"></ol>
+          </details>
+        </div>
+      </section>
     </div>
   </div>
-</div>
+</main>
 
-<!-- PAGE: Portfolio Analysis -->
-<div class="page" id="pagePortfolio">
-  <div class="portfolio-page">
-    <div class="page-heading">📂 Portfolio Analysis</div>
-    <div class="page-sub">Upload your holdings as CSV or Excel to get a full portfolio review.</div>
-
-    <!-- Upload zone -->
-    <div class="upload-zone" id="uploadZone"
-         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)"
-         onclick="document.getElementById('fileInput').click()">
-      <div class="upload-icon">📁</div>
-      <div class="upload-title">Drop your file here or click to browse</div>
-      <div class="upload-sub">CSV or Excel (.xlsx) · Format: ticker, quantity, buy_price</div>
-      <label class="upload-choose" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">
-        Choose File
-      </label>
-      <input type="file" id="fileInput" class="upload-input" accept=".csv,.xlsx"
-             onchange="onFileSelect(event)">
+<!-- ======================= WATCHLIST & BRIEFS ======================= -->
+<main class="page" id="page-watchlist" aria-labelledby="watchTitle">
+  <div class="watch-head">
+    <div>
+      <h1 id="watchTitle">Watchlist</h1>
+      <p class="lede">The companies you follow, the 8:30 morning brief on them, and your alerts.</p>
     </div>
-
-    <div class="template-hint">
-      📋 Expected columns: <code>ticker</code>, <code>quantity</code>, <code>buy_price</code> &nbsp;·&nbsp;
-      Example: <code>RELIANCE,10,2400</code>
-    </div>
-
-    <!-- Selected file indicator -->
-    <div class="file-selected" id="fileSelected">
-      <span>📄</span>
-      <span class="file-name" id="fileName">—</span>
-      <button class="file-remove" onclick="removeFile()">✕</button>
-    </div>
-
-    <button class="analyze-btn" id="analyzeBtn" onclick="analyzePortfolio()" disabled>
-      <span>⚡</span> Analyze Portfolio
-    </button>
-
-    <!-- Results -->
-    <div class="port-results" id="portResults" style="display:none"></div>
+    <ol class="day-plan" aria-label="Daily schedule">
+      <li><b>8:30 AM</b><span>Morning brief on your watchlist</span></li>
+      <li><b>9:00 to 3:30</b><span>Alerts for big moves and price-moving news</span></li>
+      <li><b>Any time</b><span>Your own price levels</span></li>
+    </ol>
   </div>
-</div>
 
-<!-- LOADING OVERLAY -->
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
-  <div class="loading-text" id="loadingText">Running multi-agent analysis…</div>
-</div>
+  <div class="watch-grid">
+    <section class="brief-col" aria-label="Briefs">
+      <div class="brief-switch">
+        <h2 class="brief-title">Morning brief</h2>
+        <span class="brief-when" id="mWhen"></span>
+        <button type="button" class="secondary small" id="mRefresh" data-refresh="morning">Write it now</button>
+      </div>
+      <div id="mBody"></div>
+    </section>
 
-<!-- ═══════════════════════════════════════
-   SCRIPTS
-═══════════════════════════════════════ -->
+    <aside class="watch-side">
+      <section class="panel" aria-labelledby="wlTitle">
+        <h2 id="wlTitle">Watchlist</h2>
+        <p class="lede" id="wlCount">Up to 25 companies.</p>
+        <div class="suggest-wrap">
+          <label class="sr-only" for="wlInput">Add a company</label>
+          <input id="wlInput" placeholder="Add a company, e.g. Infosys" autocomplete="off" spellcheck="false"
+                 role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="wlSuggest">
+          <ul class="suggest" id="wlSuggest" role="listbox" hidden></ul>
+        </div>
+        <p class="form-error" id="wlErr" role="alert" hidden></p>
+        <ul class="wl-list" id="wlList"></ul>
+      </section>
+
+      <section class="panel" aria-labelledby="alTitle">
+        <div class="panel-row"><h2 id="alTitle">Alerts</h2><button type="button" class="link-btn" id="alSeen" hidden>Mark all read</button></div>
+        <p class="lede">Checked every 30 minutes while the market is open.</p>
+        <ul class="alerts" id="alList"></ul>
+      </section>
+
+      <section class="panel" aria-labelledby="paTitle">
+        <h2 id="paTitle">Your price alerts</h2>
+        <p class="lede">Tell me when a stock crosses a price. Checked every 30 minutes in market hours.</p>
+        <form class="pa-form" id="paForm" novalidate>
+          <div class="suggest-wrap">
+            <label class="sr-only" for="paTicker">Stock</label>
+            <input id="paTicker" placeholder="Stock" autocomplete="off" spellcheck="false"
+                   role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="paSuggest">
+            <ul class="suggest" id="paSuggest" role="listbox" hidden></ul>
+          </div>
+          <label class="sr-only" for="paDir">Direction</label>
+          <select id="paDir"><option value="below">falls below</option><option value="above">rises above</option></select>
+          <label class="sr-only" for="paPrice">Price in rupees</label>
+          <input id="paPrice" type="number" min="1" step="0.05" placeholder="₹ price">
+          <button class="secondary" type="submit">Add</button>
+        </form>
+        <p class="form-error" id="paErr" role="alert" hidden></p>
+        <ul class="pa-list" id="paList"></ul>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<!-- ======================= PORTFOLIO ======================= -->
+<main class="page" id="page-portfolio" aria-labelledby="portTitle">
+  <div class="port-head">
+    <div>
+      <h1 id="portTitle">Your portfolio</h1>
+      <p class="lede" id="portLede">Upload your holdings once. They are priced live, reviewed by the Portfolio Review agent, and summed up in a closing brief at 3:15 every market day.</p>
+    </div>
+    <div class="port-actions" id="portActions" hidden>
+      <button class="primary" type="button" id="reviewSaved">Review my holdings now</button>
+      <button class="secondary" type="button" id="replaceHoldings">Replace holdings</button>
+      <button class="link-btn" type="button" id="hdClear">Remove holdings</button>
+    </div>
+  </div>
+  <p class="hd-summary" id="hdSummary"></p>
+
+  <div class="port-upload" id="portUpload">
+    <div class="drop" id="drop">
+      <input type="file" id="fileInput" accept=".csv,.xlsx" class="sr-only">
+      <button class="secondary" type="button" id="chooseFile">Choose a CSV or Excel file</button>
+      <span id="fileName" class="file-name">or drop it here</span>
+      <button class="primary" type="button" id="reviewBtn" disabled>Upload and review</button>
+    </div>
+    <p class="csv-sample">Columns: <code>ticker, quantity, buy_price</code>, for example <code>TCS,5,3500</code>. A Zerodha holdings export works too.
+      No file handy? <button type="button" class="link-btn" id="sampleBtn">Use a sample portfolio</button></p>
+    <label class="check"><input type="checkbox" id="keepHoldings" checked> Keep these holdings for the 3:15 brief and the Today screen</label>
+  </div>
+  <p class="form-error" id="hdErr" role="alert" hidden></p>
+
+  <section class="port-brief" aria-label="Closing brief">
+    <div class="brief-switch">
+      <h2 class="brief-title">Closing brief, 3:15</h2>
+      <span class="brief-when" id="cWhen"></span>
+      <button type="button" class="secondary small" id="cRefresh" data-refresh="closing">Write it now</button>
+    </div>
+    <div id="cBody"></div>
+  </section>
+
+  <section aria-label="Portfolio review"><div id="portfolioResult"></div></section>
+</main>
+
+<!-- ======================= HISTORY ======================= -->
+<main class="page" id="page-history" aria-labelledby="histTitle">
+  <h1 id="histTitle">History and track record</h1>
+  <p class="lede">Every analysis you ran, and how the price moved after it. The Planner reads this history before it plans, so a repeat analysis notices what changed.</p>
+  <div id="trackSummary"></div>
+  <div id="historyList"></div>
+</main>
+
+<!-- ======================= ACCOUNT ======================= -->
+<main class="page" id="page-profile" aria-labelledby="profTitle">
+  <h1 id="profTitle">Profile, goals and notifications</h1>
+  <p class="lede" id="accountEmail"></p>
+  <div class="account-grid">
+    <section class="panel" aria-labelledby="profileTitle">
+      <h2 id="profileTitle">Your investor profile</h2>
+      <p class="lede">Your money, your goals and what to avoid. Every analysis and brief starts from this.</p>
+      <div id="accountProfile"></div>
+    </section>
+    <div class="side-stack">
+    <section class="panel" aria-labelledby="notifTitle">
+      <h2 id="notifTitle">Notifications</h2>
+      <p class="lede">Briefs at 8:30 and 3:15 on market days, and alerts as they happen. They always appear in the app too.</p>
+      <div class="notif-row">
+        <div><b>Telegram</b><p class="hint" id="tgNote">Checking…</p></div>
+        <div class="notif-act" id="tgAct"></div>
+      </div>
+      <div class="notif-row">
+        <div><b>Email</b><p class="hint" id="emNote"></p></div>
+        <label class="switch-l"><input type="checkbox" id="emToggle"> <span>Email me each brief</span></label>
+      </div>
+    </section>
+    <form class="panel" id="passwordForm" novalidate>
+      <h2>Change password</h2>
+      <p class="lede">At least 6 characters.</p>
+      <p class="form-ok" id="pwOk" hidden>Password changed.</p>
+      <p class="form-error" id="pwErr" role="alert" hidden></p>
+      <div class="field"><label for="pwCurrent">Current password</label><input id="pwCurrent" type="password" autocomplete="current-password"></div>
+      <div class="field"><label for="pwNew">New password</label><input id="pwNew" type="password" autocomplete="new-password" minlength="6"></div>
+      <button class="secondary" type="submit">Change password</button>
+    </form>
+    </div>
+  </div>
+</main>
+
+<footer class="app-foot">Educational analysis, not investment advice. <a href="/">About Quantum Advisor</a> · <a href="terms.html">Terms of use</a></footer>
+
+<script src="js/minutes.js"></script>
+<script src="js/agent-flow.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/profile-form.js"></script>
 <script src="js/app.js"></script>
+<script src="js/watch.js"></script>
+<script src="js/today.js"></script>
 </body>
 </html>
