@@ -75,3 +75,17 @@ def test_passwords_are_salted_hashes(client):
     with app_module.get_db() as db:
         stored = db.execute("SELECT pw FROM users WHERE email='z@b.co'").fetchone()["pw"]
     assert stored.startswith(("scrypt:", "pbkdf2:"))
+
+
+def test_unknown_symbol_is_rejected_fast_with_suggestions(client, monkeypatch):
+    import config
+    from tools import market_snapshot, symbols as symbols_mod
+    from tools.base import ToolError
+    monkeypatch.setattr(config, "SYMBOL_PRECHECK", True)
+    patch_data(monkeypatch, failing_sources=("marketstack", "alphavantage", "yfinance"))
+    monkeypatch.setattr(market_snapshot, "_yf_year", lambda s: (_ for _ in ()).throw(ToolError("none")))
+    monkeypatch.setattr(symbols_mod, "live_search", lambda q: [])
+    body = client.post("/api/analyze", json={"ticker": "RELIANC"}).get_json()
+    assert "No NSE prices were found for RELIANC" in body["error"] and body["suggestions"][0]["symbol"] == "RELIANCE"
+    res = client.post("/api/analyze/stream", json={"ticker": "QQQZZZ"})
+    assert res.status_code == 400 and res.get_json()["details"][0]["field"] == "ticker"

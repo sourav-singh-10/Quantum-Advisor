@@ -17,11 +17,13 @@ class FakeLLM:
         self.available = available
         self.stats = LLMStats()
         self.calls: list[tuple[str, str, str]] = []
+        self.systems: list[str] = []
 
     def structured(self, *, agent, system, prompt, schema, reasoning=False, temperature=0.2):
         self.stats.calls += 1
         key = (agent, schema.__name__)
         self.calls.append((agent, schema.__name__, prompt))
+        self.systems.append(system)
         queue = self.script.get(key)
         if not self.available or not queue:
             self.stats.failures += 1

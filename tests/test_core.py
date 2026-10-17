@@ -47,3 +47,15 @@ def test_memory_returns_latest_run_per_user_and_ticker(tmp_path):
     assert m.last_run("a@x.in", "TCS")["recommendation"] in ("BUY", "HOLD")
     assert m.last_run("a@x.in", "INFY") is None
     assert len(m.recent("a@x.in")) == 2
+
+
+def test_sqlite_statements_are_translated_for_postgres():
+    from core.db import translate
+    cols = {"profiles": ["email", "data"]}.get
+    assert translate("SELECT a FROM t WHERE x=? AND y=?") == "SELECT a FROM t WHERE x=%s AND y=%s"
+    assert translate("INSERT OR IGNORE INTO alerts (a, b) VALUES (?,?)").endswith("ON CONFLICT DO NOTHING")
+    up = translate("INSERT OR REPLACE INTO profiles VALUES (?, ?)", cols)
+    assert up == ("INSERT INTO profiles (email, data) VALUES (%s, %s) ON CONFLICT (email) "
+                  "DO UPDATE SET data = EXCLUDED.data")
+    assert "BIGSERIAL PRIMARY KEY" in translate("id INTEGER PRIMARY KEY AUTOINCREMENT, p REAL")
+    assert "DOUBLE PRECISION" in translate("p REAL NOT NULL")
