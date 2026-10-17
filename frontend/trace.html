@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Run trace | Quantum Advisor</title>
+<link rel="preload" href="fonts/plus-jakarta-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/agent-flow.css">
+<link rel="stylesheet" href="css/system.css">
+<link rel="stylesheet" href="css/player.css">
+<link rel="icon" href="img/mark.svg" type="image/svg+xml">
+<style>
+  .trace { max-width: 1240px; margin: 0 auto; padding: 40px 20px 64px; }
+  .trace-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px 40px; align-items: end; margin-bottom: 22px; }
+  .trace-head h1 { font-size: clamp(1.8rem, 3vw, 2.5rem); letter-spacing: -0.035em; line-height: 1.1; margin-top: 12px; }
+  .trace-head .lede { color: var(--ink-1); margin-top: 8px; max-width: 64ch; }
+  .trace-stats { display: flex; gap: 26px; }
+  .trace-stats div { display: flex; flex-direction: column; }
+  .trace-stats dd { order: 1; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .trace-stats dt { order: 2; color: var(--ink-3); font-size: 0.76rem; margin-top: 5px; white-space: nowrap; }
+  .raw { margin-top: 14px; font-size: 0.86rem; color: var(--ink-1); }
+  .topbar .back { margin-left: auto; font-weight: 700; font-size: 0.9rem; text-decoration: none; padding: 8px 12px; border-radius: 10px; }
+  .topbar .back:hover { background: var(--canvas); }
+  @media (max-width: 860px) {
+    .trace { padding: 24px 12px 48px; }
+    .trace-head { grid-template-columns: minmax(0, 1fr); }
+    .trace-stats { gap: 16px; flex-wrap: wrap; }
+    .trace-stats dd { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/"><img class="brand-mark" src="img/mark.svg" alt=""><span class="brand-name">Quantum Advisor</span></a>
+  <a class="back" href="/app" id="backLink">Back to the app</a>
+</header>
+<main class="trace">
+  <div class="trace-head">
+    <div>
+      <span class="label-chip" id="traceKind">Run trace</span>
+      <h1 id="traceTitle">Loading the run…</h1>
+      <p class="lede" id="traceLede">Every message the agents exchanged during one run, in order, exactly as logged. Play it back on the map, or click any message to jump to it.</p>
+    </div>
+    <dl class="trace-stats" id="traceStats"></dl>
+  </div>
+
+  <section class="player" aria-label="Replay of the run">
+    <div class="player-now">
+      <div aria-live="polite">
+        <p class="now-route" id="nowRoute">Press play to replay the run.</p>
+        <p class="now-caption" id="nowText">The map below shows which agent sent which message, and what each one is doing.</p>
+      </div>
+      <div class="call-box"><p class="k">The committee's call</p><p class="v" id="callV">None yet</p><p class="n" id="callN"></p></div>
+    </div>
+    <div class="player-flow" id="flowHost"></div>
+    <div class="player-bar">
+      <button type="button" class="pbtn" id="pPrev" aria-label="Previous message"><svg viewBox="0 0 16 16"><path d="M4 3h2v10H4zM13 3v10L7 8z"/></svg></button>
+      <button type="button" class="pbtn play" id="pPlay" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4 2.5v11L13.5 8z"/></svg><span>Play</span></button>
+      <button type="button" class="pbtn" id="pNext" aria-label="Next message"><svg viewBox="0 0 16 16"><path d="M10 3h2v10h-2zM3 3v10l6-5z"/></svg></button>
+      <div class="scrub"><label class="sr-only" for="pSeek">Position in the run</label><input type="range" id="pSeek" min="0" max="0" value="0"><output id="pPos" for="pSeek">0 of 0</output></div>
+      <div class="speed" role="group" aria-label="Speed">
+        <button type="button" data-speed="1" aria-pressed="true">1×</button><button type="button" data-speed="2" aria-pressed="false">2×</button><button type="button" data-speed="4" aria-pressed="false">4×</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="log" aria-labelledby="logTitle">
+    <div class="log-head"><h2 id="logTitle">Execution log</h2><p id="logNote">Click a message to jump the map to that moment.</p></div>
+    <ol class="log-list" id="traceList"></ol>
+  </section>
+  <p class="raw" id="rawWrap"><a id="rawLink" href="#">Raw JSON of this trace</a></p>
+</main>
+<script src="js/minutes.js"></script>
+<script src="js/agent-flow.js"></script>
+<script src="js/replay.js"></script>
+<script>
+(async () => {
+  const qs = new URLSearchParams(location.search);
+  const run = qs.get('run') || '';
+  const sample = qs.has('sample') || !run;
+  const $ = id => document.getElementById(id);
+  let events = [];
+  try {
+    if (sample) {
+      const story = await (await fetch('samples/story_run.json')).json();
+      events = story.events;
+      $('traceKind').textContent = 'Recorded run';
+      const rq = story.events[0].payload, day = new Date(story.date + 'T12:00:00').toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'});
+      $('traceTitle').textContent = `${rq.ticker}, for a ${String(rq.riskAppetite).toLowerCase()} ${rq.age}-year-old`;
+      $('traceLede').textContent = `Run ${story.runId}, recorded on ${day} from ${story.started} to ${story.finished} UTC. Nothing has been edited: this is the trace as the server logged it.`;
+      $('rawLink').href = 'samples/story_run.json';
+      $('backLink').href = '/'; $('backLink').textContent = 'Back to the home page';
+    } else {
+      $('rawLink').href = '/api/runs/' + encodeURIComponent(run) + '/trace';
+      const res = await fetch('/api/runs/' + encodeURIComponent(run) + '/trace');
+      if (!res.ok) {
+        $('traceTitle').textContent = 'This run is not available';
+        $('traceLede').innerHTML = `No trace was found for run <b>${esc(run)}</b>. Traces are kept until the server restarts. <a href="trace.html?sample">Open a recorded run instead</a>.`;
+        return;
+      }
+      events = (await res.json()).events;
+      const req = events.find(e => e.type === 'request');
+      $('traceTitle').textContent = req && req.payload && req.payload.ticker ? `${req.payload.ticker}, run ${run}` : `Run ${run}`;
+    }
+  } catch (e) {
+    $('traceTitle').textContent = 'Could not load the trace';
+    $('traceLede').textContent = 'Refresh the page to try again.';
+    return;
+  }
+
+  const count = t => events.filter(e => e.type === t).length;
+  const agents = new Set(events.flatMap(e => [e.from, e.to]).filter(a => a && !a.startsWith('tool:') && !['User', 'team', 'memory'].includes(a)));
+  const llm = events.filter(e => e.llm);
+  $('traceStats').innerHTML = [
+    [events.length, 'messages'], [agents.size, 'agents'], [count('tool_call'), 'tool calls'],
+    [count('draft'), 'debate rounds'], [`${llm.filter(e => e.llm.ok).length}/${llm.length}`, 'model decisions'],
+  ].map(([v, k]) => `<div><dd>${v}</dd><dt>${k}</dt></div>`).join('');
+
+  // briefs and portfolio reviews are not committee runs: show their log without the map
+  const committee = events.some(e => ['Planner', 'StrategyAgent', 'RiskManager'].includes(e.from));
+  if (!committee) document.querySelector('.player').hidden = true;
+  const list = $('traceList');
+  list.innerHTML = events.map(minuteItem).join('');
+  const items = [...list.children];
+
+  const flow = new AgentFlow($('flowHost'), {label: 'Map of this run'});
+  const seek = $('pSeek'), pos = $('pPos');
+  seek.max = events.length;
+  function setCall(rec, note) {
+    $('callV').textContent = rec || 'None yet';
+    $('callV').className = 'v ' + (rec ? rec.toLowerCase() : '');
+    $('callN').textContent = note || '';
+  }
+  const player = new Replay(flow, events, {
+    onReset() { setCall(null, ''); },
+    onEvent(e, k, animate) {
+      const p = e.payload || {};
+      if (e.type === 'draft') setCall(p.recommendation, `Round ${e.round} draft`);
+      if (e.type === 'critique') $('callN').textContent = `Round ${e.round}: ${p.verdict === 'approve' ? 'approved' : 'sent back'}`;
+      if (e.type === 'arbitration') setCall(p.recommendation, 'Planner ruled');
+      if (e.type === 'decision' && p.recommendation) setCall(p.recommendation, `Final, ${String(p.confidence || '').toLowerCase()} confidence`);
+      if (e.type === 'tool_result' && animate) return;
+      const route = e.to && e.to !== e.from ? `${partyName(e.from)} to ${partyName(e.to)}` : partyName(e.from);
+      $('nowRoute').innerHTML = `<span>${esc(route)}</span><span class="chapter">${esc(KIND_NAMES[e.type] || e.type)}${e.round ? ', round ' + e.round : ''}</span>`;
+      const t = describeEvent(e);
+      const el = $('nowText');
+      el.textContent = t.length > 280 ? t.slice(0, 278).trimEnd() + '…' : t;
+      el.classList.remove('now-in'); void el.offsetWidth; el.classList.add('now-in');
+    },
+    onProgress(n) {
+      seek.value = n; pos.textContent = `${n} of ${events.length}`;
+      items.forEach((li, k) => { li.classList.toggle('now', k === n - 1); li.classList.toggle('ahead', k >= n); });
+      const cur = items[n - 1];
+      if (cur) list.scrollTo({top: cur.offsetTop - list.clientHeight / 2, behavior: 'smooth'});
+    },
+    onState(on) {
+      const b = $('pPlay');
+      b.setAttribute('aria-pressed', String(on));
+      b.querySelector('span').textContent = on ? 'Pause' : (player && player.i >= events.length ? 'Replay' : 'Play');
+      b.querySelector('svg').innerHTML = on ? '<path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/>' : '<path d="M4 2.5v11L13.5 8z"/>';
+    },
+  });
+  pos.textContent = `0 of ${events.length}`;
+  items.forEach(li => li.classList.add('ahead'));
+  $('pPlay').addEventListener('click', () => player.toggle());
+  $('pNext').addEventListener('click', () => player.step(1));
+  $('pPrev').addEventListener('click', () => player.step(-1));
+  seek.addEventListener('input', () => { player.setPlaying(false); player.seek(Number(seek.value)); });
+  items.forEach((li, k) => li.addEventListener('click', () => { player.setPlaying(false); player.seek(k + 1); }));
+  document.querySelectorAll('.speed button').forEach(b => b.addEventListener('click', () => {
+    player.speed = Number(b.dataset.speed);
+    document.querySelectorAll('.speed button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  }));
+  if (qs.has('end')) player.seek(events.length);
+})();
+</script>
+</body>
+</html>
