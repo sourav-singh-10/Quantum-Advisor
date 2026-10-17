@@ -1,83 +1,131 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 650" font-family="Segoe UI, Helvetica, Arial, sans-serif" role="img" aria-label="Quantum Advisor agent architecture">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 830" font-family="Segoe UI, Helvetica, Arial, sans-serif" role="img" aria-label="Quantum Advisor agent architecture">
 <rect width="100%" height="100%" fill="#ffffff"/>
-<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#64748b"/></marker><marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2563eb"/></marker></defs>
-<text x="24" y="34" text-anchor="start" font-size="17" font-weight="600" fill="#0f172a">Quantum Advisor: planner-led agent team with a Strategy ↔ Risk critique loop</text>
-<text x="24" y="54" text-anchor="start" font-size="12" font-weight="400" fill="#64748b">LangGraph state machine · every arrow is a typed message recorded in the execution trace</text>
-<rect x="24" y="76" width="200" height="60" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
-<text x="124.0" y="100" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">User / Flask API</text>
-<text x="124.0" y="118" text-anchor="middle" font-size="12" fill="#475569">ticker + profile + goal</text>
-<rect x="330" y="76" width="240" height="60" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
-<text x="450.0" y="100" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Planner (orchestrator)</text>
-<text x="450.0" y="118" text-anchor="middle" font-size="12" fill="#475569">plans, re-plans, arbitrates</text>
-<rect x="676" y="76" width="200" height="60" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
-<text x="776.0" y="100" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Run memory (SQLite)</text>
-<text x="776.0" y="118" text-anchor="middle" font-size="12" fill="#475569">last run per user + ticker</text>
-<path d="M224 106H330" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
-<path d="M570 106H676" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)" marker-start="url(#a)"/>
-<rect x="24" y="196" width="192" height="74" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
-<text x="120.0" y="220" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Profile agent</text>
-<text x="120.0" y="238" text-anchor="middle" font-size="12" fill="#475569">risk_capacity tool</text>
-<text x="120.0" y="254" text-anchor="middle" font-size="12" fill="#475569">goal → constraints</text>
-<rect x="244" y="196" width="192" height="74" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
-<text x="340.0" y="220" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Market analyst</text>
-<text x="340.0" y="238" text-anchor="middle" font-size="12" fill="#475569">picks price source</text>
-<text x="340.0" y="254" text-anchor="middle" font-size="12" fill="#475569">indicators tool</text>
-<rect x="464" y="196" width="192" height="74" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
-<text x="560.0" y="220" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Fundamentals analyst</text>
-<text x="560.0" y="238" text-anchor="middle" font-size="12" fill="#475569">yfinance ratios</text>
-<text x="560.0" y="254" text-anchor="middle" font-size="12" fill="#475569">rule score + LLM view</text>
-<rect x="684" y="196" width="192" height="74" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
-<text x="780.0" y="220" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">News analyst</text>
-<text x="780.0" y="238" text-anchor="middle" font-size="12" fill="#475569">picks news source</text>
-<text x="780.0" y="254" text-anchor="middle" font-size="12" fill="#475569">LLM labels headlines</text>
-<path d="M450 136V166" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)" marker-start="url(#a)"/>
-<path d="M120.0 166H780.0" fill="none" stroke="#64748b" stroke-width="1.4"/>
-<path d="M120.0 166V196" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
-<path d="M340.0 166V196" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
-<path d="M560.0 166V196" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
-<path d="M780.0 166V196" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
-<text x="460" y="158" text-anchor="start" font-size="12" font-weight="400" fill="#475569">tasks ↓  results / errors ↑  (re-plan once on failure)</text>
-<text x="450" y="618" text-anchor="middle" font-size="11" font-weight="400" fill="#64748b">Tools: MarketStack · Alpha Vantage · yfinance · NewsAPI · Google News RSS · indicator / risk / sizing maths</text>
-<path d="M120.0 270V270" fill="none" stroke="#64748b" stroke-width="1.4"/>
-<path d="M340.0 270V270" fill="none" stroke="#64748b" stroke-width="1.4"/>
-<path d="M560.0 270V270" fill="none" stroke="#64748b" stroke-width="1.4"/>
-<path d="M780.0 270V270" fill="none" stroke="#64748b" stroke-width="1.4"/>
-<path d="M120.0 306H780.0" fill="none" stroke="#64748b" stroke-width="1.4"/>
-<path d="M120.0 270V306" fill="none" stroke="#64748b" stroke-width="1.4"/>
-<path d="M340.0 270V306" fill="none" stroke="#64748b" stroke-width="1.4"/>
-<path d="M560.0 270V306" fill="none" stroke="#64748b" stroke-width="1.4"/>
-<path d="M780.0 270V306" fill="none" stroke="#64748b" stroke-width="1.4"/>
-<rect x="150" y="340" width="240" height="78" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
-<text x="270.0" y="364" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Strategy agent</text>
-<text x="270.0" y="382" text-anchor="middle" font-size="12" fill="#475569">BUY / HOLD / SELL + confidence</text>
-<text x="270.0" y="398" text-anchor="middle" font-size="12" fill="#475569">answers objections by id</text>
-<rect x="510" y="340" width="240" height="78" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
-<text x="630.0" y="364" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Risk manager (critic)</text>
-<text x="630.0" y="382" text-anchor="middle" font-size="12" fill="#475569">risk_score + suitability tools</text>
-<text x="630.0" y="398" text-anchor="middle" font-size="12" fill="#475569">approve / revise / veto</text>
-<path d="M270 306V340" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
-<path d="M630 306V340" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
-<text x="450" y="326" text-anchor="middle" font-size="11" font-weight="400" fill="#64748b">shared state: findings</text>
-<path d="M390 366H510" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ab)"/>
-<path d="M510 394H390" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ab)"/>
-<text x="450" y="358" text-anchor="middle" font-size="12" font-weight="400" fill="#1d4ed8">draft</text>
-<text x="450" y="412" text-anchor="middle" font-size="12" font-weight="400" fill="#1d4ed8">critique (R1, R2…)</text>
-<text x="590" y="440" text-anchor="middle" font-size="12" font-weight="400" fill="#1d4ed8">≤ 3 rounds · guardrail: no BUY far above capacity · then Planner arbitrates</text>
-<rect x="24" y="480" width="240" height="74" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
-<text x="144.0" y="504" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Portfolio agent</text>
-<text x="144.0" y="522" text-anchor="middle" font-size="12" fill="#475569">position_size tool</text>
-<text x="144.0" y="538" text-anchor="middle" font-size="12" fill="#475569">concrete advice</text>
-<rect x="330" y="480" width="240" height="74" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
-<text x="450.0" y="504" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Report agent</text>
-<text x="450.0" y="522" text-anchor="middle" font-size="12" fill="#475569">plain-language report</text>
-<text x="450.0" y="538" text-anchor="middle" font-size="12" fill="#475569">includes the debate</text>
-<rect x="636" y="480" width="240" height="74" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
-<text x="756.0" y="504" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Response + trace</text>
-<text x="756.0" y="522" text-anchor="middle" font-size="12" fill="#475569">JSON / live SSE stream</text>
-<text x="756.0" y="538" text-anchor="middle" font-size="12" fill="#475569">logs/traces/&lt;run_id&gt;.jsonl</text>
-<path d="M270 418V460H144V480" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
-<text x="280" y="465" text-anchor="start" font-size="12" font-weight="400" fill="#475569">approved or arbitrated decision</text>
-<path d="M264 517H330" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
-<path d="M570 517H636" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
-<text x="450" y="636" text-anchor="middle" font-size="11" font-weight="400" fill="#64748b">If the LLM is unavailable, each agent falls back to its rule-based path and is reported as degraded.</text>
+<defs>
+  <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#64748b"/></marker>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2563eb"/></marker>
+  <marker id="ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#6d28d9"/></marker>
+  <marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#b45309"/></marker>
+</defs>
+<text x="24" y="34" font-size="17" font-weight="600" fill="#0f172a">Quantum Advisor: a planner-led committee of agents that check, question and debate</text>
+<text x="24" y="54" font-size="12" fill="#64748b">LangGraph state machine (core/graph.py) · every arrow is a typed message recorded in the execution trace</text>
+
+<!-- top row -->
+<rect x="24" y="74" width="200" height="62" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="1.3"/>
+<text x="124" y="98" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">User / Flask API</text>
+<text x="124" y="116" text-anchor="middle" font-size="11.5" fill="#475569">ticker, profile, optional PDF</text>
+<text x="124" y="130" text-anchor="middle" font-size="11.5" fill="#475569">saved holdings and goals</text>
+<rect x="370" y="70" width="260" height="70" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+<text x="500" y="94" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Planner (orchestrator)</text>
+<text x="500" y="112" text-anchor="middle" font-size="11.5" fill="#475569">plans, re-plans, caps confidence,</text>
+<text x="500" y="127" text-anchor="middle" font-size="11.5" fill="#475569">routes follow-ups, rules on conflicts, arbitrates</text>
+<rect x="776" y="74" width="200" height="62" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="1.3"/>
+<text x="876" y="98" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Database</text>
+<text x="876" y="116" text-anchor="middle" font-size="11.5" fill="#475569">run memory, accounts, holdings</text>
+<text x="876" y="130" text-anchor="middle" font-size="11.5" fill="#475569">SQLite, or Postgres (Neon)</text>
+<path d="M224 105H366" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
+<path d="M634 105H772" fill="none" stroke="#64748b" stroke-width="1.4" marker-start="url(#a)" marker-end="url(#a)"/>
+
+<!-- tasks down -->
+<path d="M500 140V166" fill="none" stroke="#64748b" stroke-width="1.4"/>
+<path d="M109 166H891" fill="none" stroke="#64748b" stroke-width="1.4"/>
+<path d="M109 166V196" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
+<path d="M297 166V196" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
+<path d="M485 166V196" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
+<path d="M673 166V196" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
+<path d="M891 166V196" fill="none" stroke="#64748b" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#a)"/>
+<text x="579" y="186" text-anchor="middle" font-size="10.5" fill="#475569">tasks ↓ results ↑ (re-plan on failure)</text>
+
+<!-- analysts -->
+<rect x="24" y="200" width="170" height="76" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
+<text x="109" y="222" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Profile agent</text>
+<text x="109" y="240" text-anchor="middle" font-size="11.5" fill="#475569">risk_capacity tool</text>
+<text x="109" y="255" text-anchor="middle" font-size="11.5" fill="#475569">goals → constraints</text>
+<rect x="212" y="200" width="170" height="76" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
+<text x="297" y="222" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Market analyst</text>
+<text x="297" y="240" text-anchor="middle" font-size="11.5" fill="#475569">picks the price source</text>
+<text x="297" y="255" text-anchor="middle" font-size="11.5" fill="#475569">RSI, MACD, Bollinger,</text>
+<text x="297" y="269" text-anchor="middle" font-size="11.5" fill="#475569">support, 1-year view</text>
+<rect x="400" y="200" width="170" height="76" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
+<text x="485" y="222" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">News analyst</text>
+<text x="485" y="240" text-anchor="middle" font-size="11.5" fill="#475569">picks the news source</text>
+<text x="485" y="255" text-anchor="middle" font-size="11.5" fill="#475569">labels each headline</text>
+<rect x="588" y="200" width="170" height="76" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
+<text x="673" y="222" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Fundamentals</text>
+<text x="673" y="240" text-anchor="middle" font-size="11.5" fill="#475569">P/E, EPS, ROE, D/E</text>
+<text x="673" y="255" text-anchor="middle" font-size="11.5" fill="#475569">health vs. sector</text>
+<rect x="806" y="200" width="170" height="76" rx="10" fill="#fffbeb" stroke="#b45309" stroke-width="1.3" stroke-dasharray="5 3"/>
+<text x="891" y="222" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Document analyst</text>
+<text x="891" y="240" text-anchor="middle" font-size="11.5" fill="#475569">finds and reads pages</text>
+<text x="891" y="255" text-anchor="middle" font-size="11.5" fill="#475569">only if a PDF is attached</text>
+<path d="M806 228H762" fill="none" stroke="#b45309" stroke-width="2" marker-end="url(#ao)"/>
+<path d="M762 252H806" fill="none" stroke="#b45309" stroke-width="2" marker-end="url(#ao)"/>
+
+<!-- safety filter -->
+<rect x="400" y="282" width="576" height="22" rx="5" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="688" y="297" text-anchor="middle" font-size="11" fill="#334155">Safety filter: instruction-like text in headlines and PDFs is removed and reported</text>
+
+<!-- results to the debate -->
+<path d="M109 276V330" fill="none" stroke="#64748b" stroke-width="1.4"/>
+<path d="M297 276V330" fill="none" stroke="#64748b" stroke-width="1.4"/>
+<path d="M485 304V330" fill="none" stroke="#64748b" stroke-width="1.4"/>
+<path d="M673 304V330" fill="none" stroke="#64748b" stroke-width="1.4"/>
+<path d="M891 304V330" fill="none" stroke="#64748b" stroke-width="1.4" stroke-dasharray="4 3"/>
+<path d="M109 330H891" fill="none" stroke="#64748b" stroke-width="1.4"/>
+<text x="500" y="348" text-anchor="middle" font-size="11" fill="#64748b">Planner assesses the results · shared state</text>
+<path d="M300 330V380" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
+<path d="M700 330V380" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
+
+<!-- debate -->
+<rect x="150" y="380" width="300" height="92" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
+<text x="300" y="404" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Strategy agent</text>
+<text x="300" y="422" text-anchor="middle" font-size="11.5" fill="#475569">BUY / HOLD / SELL + confidence</text>
+<text x="300" y="437" text-anchor="middle" font-size="11.5" fill="#475569">starts from a rule baseline: stock outlook,</text>
+<text x="300" y="452" text-anchor="middle" font-size="11.5" fill="#475569">then fit; answers objections by id</text>
+<rect x="550" y="380" width="300" height="92" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
+<text x="700" y="404" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Risk manager (critic)</text>
+<text x="700" y="422" text-anchor="middle" font-size="11.5" fill="#475569">risk score and suitability tools</text>
+<text x="700" y="437" text-anchor="middle" font-size="11.5" fill="#475569">approve / revise / veto</text>
+<text x="700" y="452" text-anchor="middle" font-size="11.5" fill="#475569">guardrail: no unsuitable BUY</text>
+<path d="M450 410H550" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ab)"/>
+<path d="M550 444H450" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ab)"/>
+<text x="500" y="402" text-anchor="middle" font-size="12" fill="#1d4ed8">draft</text>
+<text x="500" y="462" text-anchor="middle" font-size="12" fill="#1d4ed8">critique</text>
+<text x="500" y="492" text-anchor="middle" font-size="11.5" fill="#1d4ed8">≤ 3 rounds, then the Planner arbitrates</text>
+
+<!-- follow-ups through the Planner -->
+<path d="M850 426H988V152H590V144" fill="none" stroke="#6d28d9" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ap)"/>
+<path d="M150 426H12V152H410V144" fill="none" stroke="#6d28d9" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ap)"/>
+<text x="919" y="420" text-anchor="middle" font-size="11" fill="#6d28d9">follow-up</text>
+<text x="81" y="420" text-anchor="middle" font-size="11" fill="#6d28d9">follow-up</text>
+
+<!-- bottom row -->
+<rect x="24" y="530" width="260" height="76" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
+<text x="154" y="554" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Portfolio agent</text>
+<text x="154" y="572" text-anchor="middle" font-size="11.5" fill="#475569">position_size tool</text>
+<text x="154" y="587" text-anchor="middle" font-size="11.5" fill="#475569">concrete advice for this investor</text>
+<rect x="370" y="530" width="260" height="76" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.3"/>
+<text x="500" y="554" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Report agent</text>
+<text x="500" y="572" text-anchor="middle" font-size="11.5" fill="#475569">plain-language report</text>
+<text x="500" y="587" text-anchor="middle" font-size="11.5" fill="#475569">includes the debate and evidence asked for</text>
+<rect x="716" y="530" width="260" height="76" rx="10" fill="#f0fdf4" stroke="#15803d" stroke-width="1.3"/>
+<text x="846" y="554" text-anchor="middle" font-weight="600" font-size="14" fill="#0f172a">Response + trace</text>
+<text x="846" y="572" text-anchor="middle" font-size="11.5" fill="#475569">Buy / Wait / Avoid for this investor,</text>
+<text x="846" y="587" text-anchor="middle" font-size="11.5" fill="#475569">scorecard, live SSE stream, JSONL trace</text>
+<path d="M300 472V510H154V526" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="164" y="522" font-size="11.5" fill="#475569">approved or arbitrated decision</text>
+<path d="M284 568H366" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
+<path d="M630 568H712" fill="none" stroke="#64748b" stroke-width="1.4" marker-end="url(#a)"/>
+
+<!-- legend -->
+<path d="M24 640H60" fill="none" stroke="#b45309" stroke-width="2" marker-end="url(#ao)"/>
+<text x="70" y="644" font-size="11.5" fill="#334155">Cross-check: the Document analyst challenges the Fundamentals analyst when filed figures and live data disagree; the Planner rules.</text>
+<path d="M24 662H60" fill="none" stroke="#6d28d9" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ap)"/>
+<text x="70" y="666" font-size="11.5" fill="#334155">Follow-up: Strategy or Risk asks the Planner for evidence; it sends an analyst back to its tools; the answer returns to the debate (at most 2).</text>
+<path d="M24 684H60" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ab)"/>
+<text x="70" y="688" font-size="11.5" fill="#334155">Debate: the Strategy agent drafts, the Risk manager critiques with numbered objections, the Strategy agent answers each one.</text>
+<text x="24" y="714" font-size="11" fill="#64748b">Tools: yfinance · Alpha Vantage · MarketStack · Google News RSS · NewsAPI · pypdf page search and figure extraction · indicator, risk and sizing maths</text>
+<text x="24" y="732" font-size="11" fill="#64748b">Gemini with structured output, temperature 0 and a fixed seed; one model per analysis. Without the LLM each agent falls back to rules and is reported as degraded.</text>
+<text x="24" y="764" font-size="11.5" font-weight="600" fill="#334155">Second workflow: portfolio upload → live_quote tool for every holding → Portfolio Review agent → review + trace</text>
+<text x="24" y="786" font-size="11.5" font-weight="600" fill="#334155">Third workflow (scheduled): 8:30 / 3:15 → market_snapshot + news_watch tools for each watched or held stock → Market watch agent → brief + trace</text>
+<text x="24" y="806" font-size="11" fill="#64748b">Every 30 minutes in market hours the same tools raise alerts (price-moving news, moves of 3% or more, the user's own price levels), in the app, by email or on Telegram.</text>
 </svg>
