@@ -3,105 +3,783 @@
   "title": "AnalyzeResponse",
   "description": "Successful response of POST /api/analyze (HTTP 200). On failure the body is {error, errors?, meta, trace} with HTTP 400/502.",
   "type": "object",
-  "required": ["ticker", "currentPrice", "priceSource", "trend", "rsi", "volatility",
-               "userType", "riskCapacityScore", "maxPositionPct",
-               "financialHealth", "newsSentiment",
-               "riskScore", "riskLevel", "riskFactors", "suitabilityGap",
-               "recommendation", "confidence", "decidedBy", "targetPrice1", "targetPrice2",
-               "stopLoss", "reasoning", "portfolioAdvice", "positionSizing", "expectedRange",
-               "aiReport", "debate", "meta", "trace"],
+  "required": [
+    "ticker",
+    "currentPrice",
+    "priceSource",
+    "priceHistory",
+    "trend",
+    "rsi",
+    "volatility",
+    "userType",
+    "riskCapacityScore",
+    "maxPositionPct",
+    "financialHealth",
+    "newsSentiment",
+    "riskScore",
+    "riskLevel",
+    "riskFactors",
+    "suitabilityGap",
+    "recommendation",
+    "confidence",
+    "decidedBy",
+    "targetPrice1",
+    "targetPrice2",
+    "stopLoss",
+    "reasoning",
+    "portfolioAdvice",
+    "positionSizing",
+    "expectedRange",
+    "aiReport",
+    "debate",
+    "meta",
+    "trace",
+    "followups",
+    "scorecard",
+    "holding",
+    "action"
+  ],
   "properties": {
-    "ticker": {"type": "string"},
-    "currentPrice": {"type": "number"},
-    "priceDisplay": {"type": "string"},
-    "priceSource": {"enum": ["marketstack", "alphavantage", "yfinance"]},
-    "sourcesTried": {"type": "array", "items": {"type": "string"}},
-    "trend": {"enum": ["Uptrend", "Downtrend", "Sideways"]},
-    "rsi": {"type": "number", "minimum": 0, "maximum": 100},
-    "volatility": {"type": "number", "description": "Std-dev of daily returns, %"},
-    "change1mPct": {"type": "number"},
-    "marketSummary": {"type": "string"},
-    "momentum": {"enum": ["Strong up", "Up", "Flat", "Down", "Strong down"]},
-    "dataQuality": {"enum": ["Good", "Limited", "Poor"]},
-
-    "userType": {"type": "string"},
-    "riskCapacityScore": {"type": "integer", "minimum": 0, "maximum": 100},
-    "profileSummary": {"type": "string"},
-    "maxPositionPct": {"type": "number", "minimum": 1, "maximum": 15},
-    "constraints": {"type": "array", "items": {"type": "string"}},
-
-    "pe": {"type": ["number", "null"]},
-    "roe": {"type": ["number", "null"]},
-    "de": {"type": ["number", "null"]},
-    "healthScore": {"type": ["integer", "null"]},
-    "financialHealth": {"enum": ["Strong", "Stable", "Weak", "Unknown", "Not analysed"]},
-    "fundamentalsSummary": {"type": "string"},
-
-    "newsSentiment": {"enum": ["Positive", "Neutral", "Negative", "Not analysed"]},
-    "sentimentScore": {"enum": [-1, 0, 1]},
-    "topHeadlines": {"type": "array", "items": {"type": "string"}},
-    "materialHeadlines": {"type": "array", "items": {"type": "string"}},
-    "newsSummary": {"type": "string"},
-
-    "riskScore": {"type": "integer", "minimum": 5, "maximum": 100},
-    "riskLevel": {"enum": ["Low-Medium", "Medium", "High"]},
-    "riskFactors": {"type": "array", "items": {"type": "string"}},
-    "suitabilityGap": {"type": "integer", "description": "Positive = riskier than this investor can comfortably hold"},
-    "riskSummary": {"type": "string"},
-
-    "recommendation": {"enum": ["BUY", "HOLD", "SELL"]},
-    "recommendationClass": {"enum": ["buy", "hold", "sell"]},
-    "confidence": {"enum": ["Low", "Moderate", "High"]},
-    "decidedBy": {"type": "string"},
-    "buyScore": {"type": "integer", "minimum": 0, "maximum": 100},
-    "targetPrice1": {"type": "number"},
-    "targetPrice2": {"type": "number"},
-    "stopLoss": {"type": "number"},
-    "reasoning": {"type": "array", "items": {"type": "string"}},
-
-    "portfolioAdvice": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "ticker": {
+      "type": "string"
+    },
+    "currentPrice": {
+      "type": "number"
+    },
+    "priceDisplay": {
+      "type": "string"
+    },
+    "priceSource": {
+      "enum": [
+        "marketstack",
+        "alphavantage",
+        "yfinance"
+      ]
+    },
+    "sourcesTried": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "trend": {
+      "enum": [
+        "Uptrend",
+        "Downtrend",
+        "Sideways"
+      ]
+    },
+    "rsi": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "volatility": {
+      "type": "number",
+      "description": "Std-dev of daily returns, %"
+    },
+    "change1mPct": {
+      "type": "number"
+    },
+    "marketSummary": {
+      "type": "string"
+    },
+    "momentum": {
+      "enum": [
+        "Strong up",
+        "Up",
+        "Flat",
+        "Down",
+        "Strong down"
+      ]
+    },
+    "dataQuality": {
+      "enum": [
+        "Good",
+        "Limited",
+        "Poor"
+      ]
+    },
+    "userType": {
+      "type": "string"
+    },
+    "riskCapacityScore": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "profileSummary": {
+      "type": "string"
+    },
+    "maxPositionPct": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 15
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pe": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "roe": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "de": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "healthScore": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "financialHealth": {
+      "enum": [
+        "Strong",
+        "Stable",
+        "Weak",
+        "Unknown",
+        "Not analysed"
+      ]
+    },
+    "fundamentalsSummary": {
+      "type": "string"
+    },
+    "newsSentiment": {
+      "enum": [
+        "Positive",
+        "Neutral",
+        "Negative",
+        "Not analysed"
+      ]
+    },
+    "sentimentScore": {
+      "enum": [
+        -1,
+        0,
+        1
+      ]
+    },
+    "topHeadlines": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "materialHeadlines": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "newsSummary": {
+      "type": "string"
+    },
+    "riskScore": {
+      "type": "integer",
+      "minimum": 5,
+      "maximum": 100
+    },
+    "riskLevel": {
+      "enum": [
+        "Low-Medium",
+        "Medium",
+        "High"
+      ]
+    },
+    "riskFactors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "suitabilityGap": {
+      "type": "integer",
+      "description": "Positive = riskier than this investor can comfortably hold"
+    },
+    "riskSummary": {
+      "type": "string"
+    },
+    "recommendation": {
+      "enum": [
+        "BUY",
+        "HOLD",
+        "SELL"
+      ]
+    },
+    "recommendationClass": {
+      "enum": [
+        "buy",
+        "hold",
+        "sell"
+      ]
+    },
+    "confidence": {
+      "enum": [
+        "Low",
+        "Moderate",
+        "High"
+      ]
+    },
+    "decidedBy": {
+      "type": "string"
+    },
+    "buyScore": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "targetPrice1": {
+      "type": "number"
+    },
+    "targetPrice2": {
+      "type": "number"
+    },
+    "stopLoss": {
+      "type": "number"
+    },
+    "reasoning": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "portfolioAdvice": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
     "positionSizing": {
       "type": "object",
-      "required": ["positionPct", "units", "amount"],
-      "properties": {"positionPct": {"type": "number"}, "units": {"type": "integer"},
-                     "amount": {"type": "number"}}
+      "required": [
+        "positionPct",
+        "units",
+        "amount"
+      ],
+      "properties": {
+        "positionPct": {
+          "type": "number"
+        },
+        "units": {
+          "type": "integer"
+        },
+        "amount": {
+          "type": "number"
+        }
+      }
     },
-    "expectedRange": {"type": "string"},
-    "aiReport": {"type": "string"},
-
+    "expectedRange": {
+      "type": "string"
+    },
+    "aiReport": {
+      "type": "string"
+    },
     "debate": {
-      "type": "array", "minItems": 1, "maxItems": 3,
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
       "items": {
         "type": "object",
-        "required": ["round", "draft", "critique"],
+        "required": [
+          "round",
+          "draft",
+          "critique"
+        ],
         "properties": {
-          "round": {"type": "integer"},
-          "draft": {"type": "object", "required": ["recommendation", "confidence", "rationale", "responses"]},
+          "round": {
+            "type": "integer"
+          },
+          "draft": {
+            "type": "object",
+            "required": [
+              "recommendation",
+              "confidence",
+              "rationale",
+              "responses"
+            ]
+          },
           "critique": {
             "type": "object",
-            "required": ["verdict", "reasoning", "objections"],
+            "required": [
+              "verdict",
+              "reasoning",
+              "objections"
+            ],
             "properties": {
-              "verdict": {"enum": ["approve", "revise", "veto"]},
-              "objections": {"type": "array", "items": {
-                "type": "object", "required": ["id", "text", "severity"],
-                "properties": {"severity": {"enum": ["minor", "major", "blocking"]}}}}
+              "verdict": {
+                "enum": [
+                  "approve",
+                  "revise",
+                  "veto"
+                ]
+              },
+              "objections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "text",
+                    "severity"
+                  ],
+                  "properties": {
+                    "severity": {
+                      "enum": [
+                        "minor",
+                        "major",
+                        "blocking"
+                      ]
+                    }
+                  }
+                }
+              }
             }
           }
         }
       }
     },
-    "plan": {"type": "object"},
-    "lastRun": {"type": ["object", "null"]},
+    "plan": {
+      "type": "object"
+    },
+    "lastRun": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
     "meta": {
       "type": "object",
-      "required": ["runId", "status", "llmAvailable", "llmCalls", "degradedAgents", "failedAgents",
-                   "durationMs", "replans", "debateRounds"],
+      "required": [
+        "runId",
+        "status",
+        "llmAvailable",
+        "llmCalls",
+        "degradedAgents",
+        "failedAgents",
+        "durationMs",
+        "replans",
+        "debateRounds"
+      ],
       "properties": {
-        "status": {"enum": ["ok", "degraded", "failed"]},
-        "degradedAgents": {"type": "array", "items": {"type": "string"}},
-        "failedAgents": {"type": "array", "items": {"type": "string"}}
+        "status": {
+          "enum": [
+            "ok",
+            "degraded",
+            "failed"
+          ]
+        },
+        "degradedAgents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "failedAgents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     },
-    "trace": {"type": "array", "items": {"$ref": "trace_event.schema.json"}}
+    "trace": {
+      "type": "array",
+      "items": {
+        "$ref": "trace_event.schema.json"
+      }
+    },
+    "priceHistory": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 20,
+      "maxItems": 120,
+      "description": "Recent daily closes, oldest first, used for the price chart"
+    },
+    "maxDrawdownPct": {
+      "type": "number",
+      "description": "Worst peak-to-trough fall in the price window, %"
+    },
+    "belowHighPct": {
+      "type": "number",
+      "description": "How far the price is below its six-month high, %"
+    },
+    "volumeRatio": {
+      "type": "number",
+      "description": "5-day average volume / 50-day average (yfinance only)"
+    },
+    "volumeLevel": {
+      "enum": [
+        "High",
+        "Normal",
+        "Low"
+      ]
+    },
+    "eps": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "revenueCr": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "companyName": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "documentAvailable": {
+      "type": "boolean",
+      "description": "True when a company PDF was attached and read"
+    },
+    "documentName": {
+      "type": "string"
+    },
+    "documentPages": {
+      "type": "integer"
+    },
+    "documentPagesUsed": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "description": "Pages the Document analyst read"
+    },
+    "documentPeriod": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "documentUnit": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "documentFigures": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      },
+      "description": "Figures as printed: Revenue, Net profit, EPS (basic), Borrowings, Total equity"
+    },
+    "documentRatios": {
+      "type": "object",
+      "properties": {
+        "profitMargin": {
+          "type": "number"
+        },
+        "de": {
+          "type": "number"
+        }
+      }
+    },
+    "documentRedFlags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "documentAboutCompany": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "documentPoints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "documentSummary": {
+      "type": "string"
+    },
+    "documentConflicts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Disagreements between the document and live data raised in the cross-check"
+    },
+    "documentCheck": {
+      "type": "object",
+      "properties": {
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "trust": {
+          "enum": [
+            "document",
+            "live",
+            "both"
+          ]
+        },
+        "reasoning": {
+          "type": "string"
+        }
+      },
+      "description": "The Planner's ruling on a document conflict"
+    },
+    "requestedTicker": {
+      "type": "string",
+      "description": "The symbol the user typed; differs from ticker when it was renamed or merged"
+    },
+    "symbolUsed": {
+      "type": "string"
+    },
+    "riskBreakdown": {
+      "type": "array",
+      "description": "Where every risk point comes from",
+      "items": {
+        "type": "object",
+        "required": [
+          "label",
+          "points"
+        ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "points": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "headlineLabels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sentiment": {
+            "enum": [
+              "Positive",
+              "Neutral",
+              "Negative"
+            ]
+          },
+          "material": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "priceDates": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "date"
+      },
+      "description": "Dates of priceHistory (yfinance only)"
+    },
+    "volumeHistory": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "description": "Shares traded per day, aligned with priceHistory"
+    },
+    "preferenceNotes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Notes when the stock is a kind of company the investor asked to avoid. The recommendation is not changed."
+    },
+    "followups": {
+      "type": "array",
+      "maxItems": 2,
+      "description": "Evidence one agent asked another for during the debate, routed by the Planner.",
+      "items": {
+        "type": "object",
+        "required": [
+          "from",
+          "round",
+          "agent",
+          "question",
+          "granted"
+        ],
+        "properties": {
+          "from": {
+            "enum": [
+              "StrategyAgent",
+              "RiskManager"
+            ]
+          },
+          "round": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "agent": {
+            "enum": [
+              "MarketAnalyst",
+              "FundamentalsAnalyst",
+              "NewsAnalyst",
+              "DocumentAnalyst"
+            ]
+          },
+          "question": {
+            "type": "string"
+          },
+          "instruction": {
+            "type": "string"
+          },
+          "granted": {
+            "type": "boolean"
+          },
+          "reasoning": {
+            "type": "string"
+          },
+          "answer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "changesView": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "scorecard": {
+      "type": "object",
+      "required": [
+        "scores",
+        "entry",
+        "redFlags"
+      ],
+      "properties": {
+        "scores": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "score",
+              "why"
+            ],
+            "properties": {
+              "name": {
+                "enum": [
+                  "Momentum",
+                  "Valuation",
+                  "Profitability",
+                  "Financial health",
+                  "News"
+                ]
+              },
+              "score": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10
+              },
+              "why": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "entry": {
+          "type": "object",
+          "required": [
+            "verdict",
+            "why"
+          ],
+          "properties": {
+            "verdict": {
+              "enum": [
+                "Good",
+                "Fair",
+                "Stretched"
+              ]
+            },
+            "why": {
+              "type": "string"
+            }
+          }
+        },
+        "redFlags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "holding": {
+      "type": "boolean",
+      "description": "Whether the investor holds the stock (saved holdings or the request)."
+    },
+    "action": {
+      "type": "object",
+      "required": [
+        "label",
+        "text",
+        "holding"
+      ],
+      "properties": {
+        "label": {
+          "enum": [
+            "Buy",
+            "Wait",
+            "Avoid",
+            "Add more",
+            "Keep",
+            "Sell"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "holding": {
+          "type": "boolean"
+        },
+        "tooRiskyForYou": {
+          "type": "boolean"
+        }
+      }
+    }
   }
 }

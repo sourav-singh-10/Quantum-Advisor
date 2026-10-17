@@ -62,6 +62,64 @@
       ],
       "default": null,
       "title": "Goal"
+    },
+    "document": {
+      "type": "string",
+      "contentMediaType": "application/pdf",
+      "contentEncoding": "binary",
+      "description": "Optional. Only in a multipart/form-data request: the company's annual report or results as a PDF with a text layer, max 15 MB."
+    },
+    "goals": {
+      "type": "array",
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "amount": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 2025,
+            "maximum": 2100
+          }
+        }
+      }
+    },
+    "monthlyInvest": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Amount added each month (INR), e.g. a SIP"
+    },
+    "avoidSectors": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "enum": [
+          "Tobacco",
+          "Alcohol",
+          "Gambling and betting",
+          "Defence and weapons",
+          "Coal, oil and gas"
+        ]
+      }
     }
   },
   "required": [
@@ -70,5 +128,5 @@
   "title": "AnalyzeRequest",
   "type": "object",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "Body of POST /api/analyze and POST /api/analyze/stream"
+  "description": "Body of POST /api/analyze and POST /api/analyze/stream: JSON, or multipart/form-data with the same fields plus an optional 'document' PDF."
 }
