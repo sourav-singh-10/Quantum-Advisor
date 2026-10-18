@@ -3,11 +3,11 @@ from __future__ import annotations
 
 from agents.base import BaseAgent
 from core.schemas import ObjectionResponse, StrategyDraft
+from tools.actions import FIT_LIMIT   # suitability gap above which a good stock is still not for this investor
 from tools.position import price_targets
 
 ORDER = ["SELL", "HOLD", "BUY"]
 RANK = {"Low": 0, "Moderate": 1, "High": 2}
-from tools.actions import FIT_LIMIT   # suitability gap above which a good stock is still not for this investor
 
 
 def baseline(stock_score: float, fit_gap: int, trend: str) -> str:

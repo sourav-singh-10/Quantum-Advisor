@@ -34,7 +34,7 @@ def brief_email(brief: dict) -> tuple[str, str, str]:
         lines += ["", f"Open the full brief: {config.APP_URL.rstrip('/')}/app#watch"]
     lines += ["", "Educational analysis, not investment advice."]
     text = "\n".join(lines)
-    body = "".join(f"<p>{html.escape(l)}</p>" if l else "<br>" for l in lines)
+    body = "".join(f"<p>{html.escape(line)}</p>" if line else "<br>" for line in lines)
     return subject, text, f"<div style='font-family:sans-serif;font-size:14px'>{body}</div>"
 
 

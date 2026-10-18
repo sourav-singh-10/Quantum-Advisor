@@ -1,0 +1,10 @@
+# Lint settings, run in CI by .github/workflows/tests.yml: `ruff check .`
+line-length = 130
+target-version = "py312"
+extend-exclude = ["frontend", "docs", "venv", ".venv"]
+
+[lint]
+# pycodestyle errors and warnings, pyflakes, bugbear
+select = ["E", "F", "W", "B"]
+# Long lines and short one-line statements are a deliberate style in this codebase.
+ignore = ["E501", "E701", "E702", "E731"]

@@ -4,7 +4,7 @@ import pytest
 
 from tools.base import ToolError
 from tools.portfolio_analyzer import PortfolioAnalyzer, live_quote
-from tests.fakes import patch_data, price_series, FUNDAMENTALS
+from tests.fakes import patch_data, FUNDAMENTALS
 
 CSV = b"ticker,quantity,buy_price\nAAA,10,100\nBBB,5,200\nZZZ,2,50\n"
 
@@ -87,7 +87,8 @@ def test_blank_excel_cells_never_become_nan():
 
 
 def test_zerodha_export_with_blank_price_cells_returns_valid_json(monkeypatch):
-    import io, json
+    import io
+    import json
     from openpyxl import Workbook
     import config
     monkeypatch.setattr(config, "REQUIRE_LOGIN", False)

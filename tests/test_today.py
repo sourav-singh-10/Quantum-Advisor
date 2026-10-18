@@ -49,7 +49,6 @@ def test_track_record_summary_counts_only_judged_calls():
 def test_price_alert_validation_and_trigger(client, monkeypatch, tmp_path):
     fake_market(monkeypatch, moves={"INFY": -1.0})
     fake_news(monkeypatch, {})
-    import config
     assert client.post("/api/price-alerts", json={"ticker": "INFY", "direction": "sideways", "price": 1}).status_code == 400
     now = client.get("/api/today/live").get_json()        # nothing saved yet: empty but fine
     assert now["holdings"] is None

@@ -1,8 +1,11 @@
 from types import SimpleNamespace
 from typing import List, Literal
 
+import pytest
 from pydantic import BaseModel
 
+import config
+from services import llm_service
 from services.llm_service import LLMClient
 
 
@@ -65,11 +68,6 @@ def test_rate_limiter_blocks_beyond_free_tier_quota():
     assert limiter.wait() and limiter.wait()
     assert limiter.wait(max_wait=0) is False
 
-
-import pytest
-
-import config
-from services import llm_service
 
 BUSY = RuntimeError("ServerError: 503 UNAVAILABLE. This model is currently experiencing high demand.")
 OK = '{"verdict":"approve","reasoning":"fine","objections":[]}'

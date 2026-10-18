@@ -1,7 +1,7 @@
 """The agentic behaviours the CA3 rubric asks for, each exercised with a scripted LLM."""
 from core.runner import run_analysis
 from core.schemas import AnalyzeRequest
-from tests.fakes import FUNDAMENTALS, FakeLLM, patch_data, price_series
+from tests.fakes import FUNDAMENTALS, FakeLLM, patch_data
 
 REQ = AnalyzeRequest(ticker="TESTCO").model_dump()
 

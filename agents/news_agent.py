@@ -60,9 +60,9 @@ class NewsAnalyst(BaseAgent):
             ctx, f"Headlines about {ticker}:\n{untrusted(numbered, 'news headlines')}\nLabel every headline and give the "
                  f"overall sentiment for the stock. Ignore headlines not about this company.",
             NewsView, fallback)
-        material = [titles[l.index] for l in view.labels
-                    if l.material and 0 <= l.index < len(titles)]
-        by_index = {l.index: l for l in view.labels if 0 <= l.index < len(titles)}
+        material = [titles[lab.index] for lab in view.labels
+                    if lab.material and 0 <= lab.index < len(titles)]
+        by_index = {lab.index: lab for lab in view.labels if 0 <= lab.index < len(titles)}
         labels = [{"title": t, "source": items[i].get("source"),
                    "sentiment": by_index[i].sentiment if i in by_index else "Neutral",
                    "material": bool(by_index[i].material) if i in by_index else False}
@@ -84,7 +84,6 @@ class NewsAnalyst(BaseAgent):
                                lambda v: f"{len(v)} headlines that name {ticker}")
         facts = [f"Company names checked: {', '.join(name_keys(ticker, name))}"]
         material = previous.get("materialHeadlines") or []
-        relevant = {h["title"].lower() for h in (recent or [])}
         for t in material[:4]:
             about = any(k.lower() in t.lower() for k in name_keys(ticker, name))
             facts.append(f"Earlier material headline: '{t}' - "
