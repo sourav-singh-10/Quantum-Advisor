@@ -171,6 +171,8 @@ python scripts/capture_run.py https://quantum-advisor.onrender.com you@example.c
 
 **Briefs on a sleeping server.** A free Render instance sleeps after 15 idle minutes, so the in-app scheduler cannot fire at 8:30 on its own. `.github/workflows/briefs.yml` (free) calls `/api/cron/tick` at 8:35, every 30 minutes in market hours and at 3:20 IST. Add two repository secrets, `APP_URL` and `CRON_SECRET` (copy the value Render generated). Opening the app also writes any brief that was missed. GitHub can start scheduled jobs a few minutes late.
 
+**Keep the demo awake (optional).** `.github/workflows/keepalive.yml` calls `/api/health` every 10 minutes from about 7:30 to 20:30 IST, so the site answers at once during evaluation slots. It uses the same `APP_URL` secret and does nothing until it is set. Turn it off after the evaluation window (Actions → Keep the demo awake → Disable workflow): a free Render service has 750 hours a month.
+
 **Telegram (optional, free).** Create a bot with @BotFather and set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_BOT_NAME`. Each user presses *Connect Telegram* on the Profile page; the bot then sends the briefs and every alert. No webhook is needed: the app reads new messages every minute.
 
 **Email (optional, free).** Set `SMTP_HOST=smtp.gmail.com`, `SMTP_USER`, `SMTP_PASSWORD` (a Gmail app password) and `APP_URL`; each user turns email on in the Watchlist page.
