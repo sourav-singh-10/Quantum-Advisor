@@ -12,7 +12,8 @@
     "to": {"type": "string", "description": "Agent name, 'team', 'User', or 'tool:<name>'"},
     "type": {"enum": ["request", "plan", "task", "tool_call", "tool_result", "result", "error",
                       "replan", "assessment", "draft", "critique", "arbitration", "decision",
-                      "final", "memory"]},
+                      "final", "memory", "challenge", "reply",
+                      "reconciliation", "followup", "answer"]},
     "round": {"type": ["integer", "null"], "description": "Debate round for draft/critique"},
     "payload": {"type": "object"},
     "llm": {
