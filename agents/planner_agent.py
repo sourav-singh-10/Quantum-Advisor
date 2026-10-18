@@ -112,7 +112,7 @@ class PlannerAgent(BaseAgent):
                           "is wrong; the committee notes both and claims less certainty.",
                 trust="both", confidence_cap="Moderate" if current_cap != "Low" else "Low")
 
-        prompt = (f"The DocumentAnalyst challenged the FundamentalsAnalyst:\n"
+        prompt = ("The DocumentAnalyst challenged the FundamentalsAnalyst:\n"
                   + "\n".join(f"- {i['text']}" for i in issues)
                   + f"\nDocument: {document['documentName']}, period "
                     f"{document.get('documentPeriod') or 'not stated'}. Live data: Yahoo Finance "
@@ -139,7 +139,7 @@ class PlannerAgent(BaseAgent):
         history = "\n".join(
             f"Round {i + 1}: Strategy {d['recommendation']} ({d['confidence']}): {d['rationale']}"
             f"\n  Risk {c['verdict']}: {[o['text'] for o in c['objections']]}"
-            for i, (d, c) in enumerate(zip(drafts, critiques)))
+            for i, (d, c) in enumerate(zip(drafts, critiques, strict=False)))
         prompt = (f"Strategy and Risk did not agree within {len(drafts)} rounds.\n{history}\n"
                   "Decide the final recommendation. When in doubt, protect the investor: that means "
                   "no new money (HOLD), not SELL. Choose SELL only if the stock's own outlook is weak.")

@@ -19,7 +19,6 @@ def test_baseline_keeps_stock_view_and_fit_apart():
 
 
 def test_holding_comes_from_saved_holdings_unless_the_client_says(monkeypatch):
-    import io
     import config
     monkeypatch.setattr(config, "REQUIRE_LOGIN", False)
     import app as app_module

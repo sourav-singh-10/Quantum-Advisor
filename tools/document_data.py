@@ -275,15 +275,15 @@ def compare_with_live(derived: dict, live: dict) -> list[dict]:
     """Differences between the document and the live data big enough to matter."""
     issues = []
     if derived.get("profitMargin") is not None and live.get("profitMargin") is not None:
-        d, l = derived["profitMargin"], live["profitMargin"]
-        if abs(d - l) > 3:
-            issues.append({"metric": "profitMargin", "document": d, "live": l,
-                           "text": f"Profit margin is {d:.1f}% in the document but {l:.1f}% "
+        d, v = derived["profitMargin"], live["profitMargin"]
+        if abs(d - v) > 3:
+            issues.append({"metric": "profitMargin", "document": d, "live": v,
+                           "text": f"Profit margin is {d:.1f}% in the document but {v:.1f}% "
                                    "in the live data"})
     if derived.get("de") is not None and live.get("de") is not None:
-        d, l = derived["de"], live["de"]
-        if abs(d - l) > 0.25 and abs(d - l) > 0.3 * max(d, l):
-            issues.append({"metric": "de", "document": d, "live": l,
-                           "text": f"Debt/equity is {d:.2f} in the document but {l:.2f} in the "
+        d, v = derived["de"], live["de"]
+        if abs(d - v) > 0.25 and abs(d - v) > 0.3 * max(d, v):
+            issues.append({"metric": "de", "document": d, "live": v,
+                           "text": f"Debt/equity is {d:.2f} in the document but {v:.2f} in the "
                                    "live data"})
     return issues

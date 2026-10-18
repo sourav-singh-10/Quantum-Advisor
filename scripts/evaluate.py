@@ -137,7 +137,7 @@ def pct(n: int, d: int) -> str:
 
 def report(results: list[dict], args) -> str:
     ok = [r for r in results if r["s"]["ok"]]
-    lines = [f"# Evaluation report", "",
+    lines = ["# Evaluation report", "",
              f"Run on {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC against `{args.url}`. "
              f"{len(results)} analyses: {len(args.stocks)} stocks x {len(PROFILES)} profiles x {args.repeats} repeats. "
              "Every number below is computed by `scripts/evaluate.py` from the server's own responses "
