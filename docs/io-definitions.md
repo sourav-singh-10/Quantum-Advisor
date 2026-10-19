@@ -100,6 +100,12 @@ Schema: [`schemas/analyze_response.schema.json`](../schemas/analyze_response.sch
 
 `meta.status` is `ok`, `degraded` (some agent used its rule fallback or had no data) or `failed`.
 
+Sample:
+
+<!-- sample:analysis-response -->
+To be filled with a real capture from the live deployment (`scripts/capture_run.py`, then `scripts/sample_to_docs.py`), tracked in issue #15.
+<!-- /sample:analysis-response -->
+
 When no price source works the response is HTTP 502:
 
 ```json
@@ -120,6 +126,12 @@ Schema: [`schemas/portfolio_response.schema.json`](../schemas/portfolio_response
 | Run | `meta {runId, llmAvailable, llmCalls, llmFailures}, trace[]` |
 
 `priceSource` is `live (yfinance)`, `live (alphavantage)`, `live (marketstack)`, `from your file`, or `unavailable (buy price used)`.
+
+Sample:
+
+<!-- sample:portfolio-response -->
+To be filled with a real capture from the live deployment (`scripts/capture_run.py --portfolio`, then `scripts/sample_to_docs.py`), tracked in issue #15.
+<!-- /sample:portfolio-response -->
 
 ### 2.3 Execution trace — one message per line
 
