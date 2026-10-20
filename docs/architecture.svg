@@ -124,7 +124,8 @@
 <path d="M24 684H60" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ab)"/>
 <text x="70" y="688" font-size="11.5" fill="#334155">Debate: the Strategy agent drafts, the Risk manager critiques with numbered objections, the Strategy agent answers each one.</text>
 <text x="24" y="714" font-size="11" fill="#64748b">Tools: yfinance · Alpha Vantage · MarketStack · Google News RSS · NewsAPI · pypdf page search and figure extraction · indicator, risk and sizing maths</text>
-<text x="24" y="732" font-size="11" fill="#64748b">Gemini with structured output, temperature 0 and a fixed seed; one model per analysis. Without the LLM each agent falls back to rules and is reported as degraded.</text>
+<text x="24" y="730" font-size="11" fill="#64748b">Gemini with structured output, temperature 0 and a fixed seed: the fast model for the analysts, Profile, Portfolio and Report; the reasoning model for the Planner, Strategy and Risk.</text>
+<text x="24" y="745" font-size="11" fill="#64748b">Without the LLM each agent falls back to rules and is reported as degraded.</text>
 <text x="24" y="764" font-size="11.5" font-weight="600" fill="#334155">Second workflow: portfolio upload → live_quote tool for every holding → Portfolio Review agent → review + trace</text>
 <text x="24" y="786" font-size="11.5" font-weight="600" fill="#334155">Third workflow (scheduled): 8:30 / 3:15 → market_snapshot + news_watch tools for each watched or held stock → Market watch agent → brief + trace</text>
 <text x="24" y="806" font-size="11" fill="#64748b">Every 30 minutes in market hours the same tools raise alerts (price-moving news, moves of 3% or more, the user's own price levels), in the app, by email or on Telegram.</text>
