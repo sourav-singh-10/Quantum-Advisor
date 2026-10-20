@@ -185,9 +185,23 @@ All charts are plain SVG built in `frontend/js/charts.js`, with no chart library
 | Google News RSS, NewsAPI | Key-free source first, keyed source as backup |
 | pypdf | Reads the text of uploaded PDFs locally; no paid document service |
 | SQLite or Postgres | SQLite by default, no extra service. Set `DATABASE_URL` to a free hosted Postgres (Neon or Supabase) and accounts, profiles, watchlists, holdings, alerts and run memory survive redeploys. `core/db.py` writes the SQL once and translates the few differences; the test suite runs on both in CI |
-| Google Sign-In | Optional (`GOOGLE_CLIENT_ID`). The browser gets an ID token from Google Identity Services; the server verifies its signature, audience and expiry with `google-auth` before creating or opening the account. No Google password or access token reaches the app |
-| pytest + GitHub Actions | 220+ tests run on every push and pull request, on SQLite and on Postgres; LLM paths are tested with a scripted fake LLM, and some tests use real NSE prices recorded on 16 Oct 2026 |
+| Google Sign-In | Optional (`GOOGLE_CLIENT_ID`). Google's own popup (Google Identity Services) returns a short-lived access token; the server asks Google whether it was issued to this client ID, is unexpired and carries a verified email before creating or opening the account. ID tokens from Google's button are also accepted and verified with `google-auth`. The token is used once and never stored, and no Google password reaches the app |
+| pytest + ruff + GitHub Actions | 240+ tests and a lint check (ruff) run on every push and pull request, the tests on SQLite and on Postgres; LLM paths are tested with a scripted fake LLM, and some tests use real NSE prices recorded on 16 Oct 2026 |
 | Render | Free hosting with GitHub auto-deploy (`render.yaml`) |
+
+### Security and privacy
+
+| Concern | What the app does |
+|---|---|
+| Passwords | Stored only as salted hashes (`werkzeug`, scrypt); older hashes are upgraded at the next sign-in. Accounts made with Google have no password at all |
+| Guessing passwords | After `LOGIN_MAX_FAILURES` (5) wrong passwords for one email from one address, sign-in for that pair is refused with HTTP 429 for `LOGIN_LOCKOUT_MINUTES` (10); a correct sign-in clears the count |
+| Session | Signed Flask cookie, `HttpOnly` (page scripts cannot read it), `SameSite=Lax` (not sent on cross-site posts) and `Secure` on Render (`SECURE_COOKIES`). *Keep me signed in* makes it last 30 days; otherwise it ends with the browser |
+| Headers | Every response sets `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, a referrer policy and a permissions policy |
+| Inputs | Requests are validated with Pydantic (`core/schemas.py`) and rejected with field-level errors; uploads are limited to 15 MB; stock symbols are checked against the NSE list |
+| Prompt injection | Text in headlines and PDFs that reads like instructions to the AI is removed before any agent sees it and reported in the result (section 2) |
+| Secrets | API keys come from environment variables only; `.env` and databases are in `.gitignore` |
+| Data sent to the model | The stock, its data and the investor profile; never the user's email or password |
+| Simulated failures | Accepted only when the server runs with `EVAL_FAULTS=1`, never on the public deployment |
 
 ## 7. Evaluation
 

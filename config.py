@@ -34,6 +34,11 @@ EVAL_FAULTS = os.getenv("EVAL_FAULTS", "0").lower() in ("1", "true", "yes")
 
 # Web app
 SECRET_KEY = os.getenv("SECRET_KEY", "")
+# Session cookies only over HTTPS. On by default on Render (which sets RENDER), off for localhost.
+SECURE_COOKIES = os.getenv("SECURE_COOKIES", "1" if os.getenv("RENDER") else "0") == "1"
+# Failed sign-ins allowed per email and address before a short lockout.
+LOGIN_MAX_FAILURES = int(os.getenv("LOGIN_MAX_FAILURES", "5"))
+LOGIN_LOCKOUT_MINUTES = int(os.getenv("LOGIN_LOCKOUT_MINUTES", "10"))
 # "Sign in with Google": an OAuth client ID (Web application) from Google Cloud Console. Optional.
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 REQUIRE_LOGIN = os.getenv("REQUIRE_LOGIN", "1") == "1"

@@ -56,6 +56,9 @@ else:
     log.warning("SECRET_KEY not set: sessions will reset when the server restarts")
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024   # company PDFs up to 15 MB
 app.permanent_session_lifetime = timedelta(days=30)    # "Remember me": stay signed in for 30 days
+app.config.update(SESSION_COOKIE_HTTPONLY=True,          # scripts on the page cannot read the session
+                  SESSION_COOKIE_SAMESITE="Lax",         # not sent on cross-site form posts
+                  SESSION_COOKIE_SECURE=config.SECURE_COOKIES)
 CORS(app, supports_credentials=True)
 
 
@@ -131,19 +134,45 @@ def signup():
     return jsonify({"ok": True, "email": email})
 
 
+_login_failures: dict[tuple[str, str], list[float]] = {}
+_login_lock = threading.Lock()
+
+
+def _recent_failures(key: tuple[str, str]) -> list[float]:
+    """Failed sign-ins for this email from this address within the lockout window."""
+    cutoff = time.time() - config.LOGIN_LOCKOUT_MINUTES * 60
+    with _login_lock:
+        recent = [t for t in _login_failures.get(key, []) if t > cutoff]
+        _login_failures[key] = recent
+        return recent
+
+
+def _note_failure(key: tuple[str, str]) -> None:
+    with _login_lock:
+        _login_failures.setdefault(key, []).append(time.time())
+
+
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json(silent=True) or {}
     email = (data.get("email") or "").strip().lower()
     pw = data.get("password") or ""
+    key = (email, request.remote_addr or "")
+    failures = _recent_failures(key)
+    if len(failures) >= config.LOGIN_MAX_FAILURES:
+        wait = max(1, round((failures[0] + config.LOGIN_LOCKOUT_MINUTES * 60 - time.time()) / 60))
+        return jsonify({"error": f"Too many failed attempts. Try again in {wait} minute{'s' if wait != 1 else ''}."}), 429
     with get_db() as db:
         row = db.execute("SELECT pw FROM users WHERE email=?", (email,)).fetchone()
         if row and row["pw"].startswith(GOOGLE_MARK):
             return jsonify({"error": "This account uses Google. Choose \u201cContinue with Google\u201d."}), 401
         if not row or not verify_password(row["pw"], pw):
+            _note_failure(key)
             return jsonify({"error": "Invalid email or password"}), 401
         if not row["pw"].startswith(("scrypt:", "pbkdf2:")):
             db.execute("UPDATE users SET pw=? WHERE email=?", (generate_password_hash(pw), email))
+    with _login_lock:
+        _login_failures.pop(key, None)
     start_session(email, data.get("remember", True))
     return jsonify({"ok": True, "email": email})
 
@@ -889,11 +918,22 @@ def today_live():
 
 
 
+SECURITY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",                 # files are only used as the type they are served as
+    "X-Frame-Options": "DENY",                           # the app cannot be framed by another site
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+}
+
+
 @app.after_request
 def no_stale_pages(resp):
-    """Pages and scripts are revalidated on every load, so an update shows without Ctrl+F5."""
+    """Pages and scripts are revalidated on every load, so an update shows without Ctrl+F5;
+    every response carries the basic security headers."""
     if request.path in ("/", "/app") or request.path.endswith((".html", ".js", ".css")):
         resp.headers["Cache-Control"] = "no-cache"
+    for k, v in SECURITY_HEADERS.items():
+        resp.headers.setdefault(k, v)
     return resp
 
 
