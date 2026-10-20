@@ -110,7 +110,13 @@ Check your configuration with `http://localhost:5000/api/health?deep=1`; it make
 pytest -q
 ```
 
-220+ tests, no network or keys needed (a scripted fake LLM and stubbed data sources). They cover every agentic path: revision changes the decision, deadlock leads to arbitration, the market agent switches source after a failure, the planner re-plans a failed analyst, graceful failure without price data, the guardrail overriding an unsafe approval, memory on a second run, live portfolio pricing with no invented prices, reading a company PDF, dropping a figure the LLM invented, the document-vs-live-data challenge and a document about the wrong company, and real NSE prices recorded on 16 Oct 2026; plus tools, the LLM client, API validation, streaming, password hashing, the documented JSON Schemas against real output, agents asking each other for evidence, ignoring planted instructions in headlines and PDFs, the scorecard, Google sign-in, and the database layer on SQLite and Postgres. CI runs them on every push and pull request, once on SQLite and once on a Postgres service.
+240+ tests, no network or keys needed (a scripted fake LLM and stubbed data sources). They cover every agentic path: revision changes the decision, deadlock leads to arbitration, the market agent switches source after a failure, the planner re-plans a failed analyst, graceful failure without price data, the guardrail overriding an unsafe approval, memory on a second run, live portfolio pricing with no invented prices, reading a company PDF, dropping a figure the LLM invented, the document-vs-live-data challenge and a document about the wrong company, and real NSE prices recorded on 16 Oct 2026; plus tools, the LLM client, API validation, streaming, password hashing, the documented JSON Schemas against real output, agents asking each other for evidence, ignoring planted instructions in headlines and PDFs, the scorecard, Google sign-in, the database layer on SQLite and Postgres, session cookie flags, security headers and the sign-in lockout. CI runs them on every push and pull request, once on SQLite and once on a Postgres service, after a lint check:
+
+```powershell
+ruff check .
+```
+
+How to propose a change: see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 To run the suite on your own Postgres: `$env:QA_TEST_DATABASE_URL = "postgresql://..."` (it empties that database first, so use a throwaway one).
 
