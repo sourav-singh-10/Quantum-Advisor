@@ -11,7 +11,7 @@
 ![Tests](https://github.com/sourav-singh-10/quantum-advisor/actions/workflows/tests.yml/badge.svg)
 ![Cost](https://img.shields.io/badge/Running%20cost-%E2%82%B90-brightgreen)
 
-**Live demo:** https://quantum-advisor.onrender.com
+**Live demo:** https://quantum-advisor-sr35.onrender.com
 
 </div>
 
@@ -162,9 +162,9 @@ Inputs and outputs with samples: [`docs/io-definitions.md`](docs/io-definitions.
 Every run writes `logs/traces/<run_id>.jsonl`: one line per message with sender, receiver, type (`plan`, `task`, `tool_call`, `tool_result`, `result`, `error`, `replan`, `assessment`, `challenge`, `reply`, `reconciliation`, `draft`, `critique`, `followup`, `answer`, `arbitration`, `decision`, `memory`, `final`), debate round, payload and the LLM model and latency. To capture submission evidence from the live site, unedited:
 
 ```powershell
-python scripts/capture_run.py https://quantum-advisor.onrender.com you@example.com yourpassword --name normal --ticker TCS --age 30 --risk Aggressive --horizon Long-term
-python scripts/capture_run.py https://quantum-advisor.onrender.com you@example.com yourpassword --name conflict --ticker ADANIENT --age 64 --risk Conservative --horizon Short-term --experience Beginner
-python scripts/capture_run.py https://quantum-advisor.onrender.com you@example.com yourpassword --name document --ticker TCS --age 40 --horizon Long-term --document path\to\tcs_results.pdf
+python scripts/capture_run.py https://quantum-advisor-sr35.onrender.com you@example.com yourpassword --name normal --ticker TCS --age 30 --risk Aggressive --horizon Long-term
+python scripts/capture_run.py https://quantum-advisor-sr35.onrender.com you@example.com yourpassword --name conflict --ticker ADANIENT --age 64 --risk Conservative --horizon Short-term --experience Beginner
+python scripts/capture_run.py https://quantum-advisor-sr35.onrender.com you@example.com yourpassword --name document --ticker TCS --age 40 --horizon Long-term --document path\to\tcs_results.pdf
 ```
 
 ## Deploy (Render, free)
