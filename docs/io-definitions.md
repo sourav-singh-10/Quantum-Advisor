@@ -103,7 +103,317 @@ Schema: [`schemas/analyze_response.schema.json`](../schemas/analyze_response.sch
 Sample:
 
 <!-- sample:analysis-response -->
-To be filled with a real capture from the live deployment (`scripts/capture_run.py`, then `scripts/sample_to_docs.py`), tracked in issue #15.
+Real output, shortened for reading from [`docs/samples/normal_response.json`](../docs/samples/normal_response.json) (run `r_20261022_043338_945e02`, 21 of 21 decisions by the model). Strings over 160 characters and lists over 2 items are cut; the file itself is unedited.
+
+```json
+{
+  "action": {
+    "holding": false,
+    "label": "Avoid",
+    "text": "Do not buy: the committee expects it to do poorly.",
+    "tooRiskyForYou": false
+  },
+  "aiReport": "INFY: Technical Overextension and Missing Fundamentals Point to a Sell Recommendation\n\nInfosys (INFY) is currently assigned a SELL rating at a price of ₹1,170.…",
+  "avgVolume50": 10295637,
+  "bbLower": 927.44,
+  "bbPercentB": 0.97,
+  "bbState": "Near upper band",
+  "bbUpper": 1176.55,
+  "bbWidthPct": 23.68,
+  "belowHighPct": -5.92,
+  "buyScore": 36,
+  "change1mPct": 12.69,
+  "change3mPct": 11.23,
+  "confidence": "Low",
+  "constraints": [
+    "No specific stated goals",
+    "Moderate risk appetite limits aggressive equity exposure",
+    "… 1 more"
+  ],
+  "currentPrice": 1170.3,
+  "dataQuality": "Good",
+  "de": null,
+  "debate": [
+    {
+      "critique": {
+        "followup": null,
+        "objections": [
+          {
+            "id": "R1",
+            "severity": "major",
+            "text": "The asset lacks fundamental data to support a valuation, making a 'HOLD' recommendation speculative rather than investment-grade."
+          },
+          {
+            "id": "R2",
+            "severity": "blocking",
+            "text": "The technical indicators (RSI 77, high volatility) combined with institutional selling pressure create an unacceptable risk of capital loss for a retail invest…"
+          },
+          "… 1 more"
+        ],
+        "reasoning": "The recommendation to 'HOLD' is rejected because the asset exhibits extreme technical overextension (RSI 77), high volatility, and a complete lack of fundament…",
+        "verdict": "veto"
+      },
+      "draft": {
+        "confidence": "Low",
+        "rationale": [
+          "The stock score of 32 falls within the HOLD range of 20-40.",
+          "The RSI of 76.7 indicates the stock is overbought, suggesting a high probability of a near-term pullback.",
+          "… 2 more"
+        ],
+        "recommendation": "HOLD",
+        "responses": [
+          {
+            "objection_id": "Risk Manager",
+            "response": "I have conceded to the risk manager's objection regarding the suitability gap and technical risks by maintaining a HOLD recommendation rather than a BUY, despi…"
+          }
+        ]
+      },
+      "round": 1
+    },
+    {
+      "critique": {
+        "followup": null,
+        "objections": [],
+        "reasoning": "The strategist has addressed all previous objections by downgrading the recommendation to SELL. Given the lack of fundamental data, the high volatility, and th…",
+        "verdict": "approve"
+      },
+      "draft": {
+        "confidence": "Low",
+        "rationale": [
+          "The stock score of 32 is adjusted to SELL due to the blocking risk of technical overextension and lack of fundamental transparency.",
+          "RSI of 76.7 indicates extreme overbought conditions, increasing the probability of a sharp correction.",
+          "… 2 more"
+        ],
+        "recommendation": "SELL",
+        "responses": [
+          {
+            "objection_id": "R1",
+            "response": "I concede that without fundamental data, a HOLD recommendation is speculative; therefore, I have downgraded to SELL to protect the investor's capital."
+          },
+          {
+            "objection_id": "R2",
+            "response": "I agree that the combination of RSI 77 and institutional selling creates an unacceptable risk profile for a moderate-risk investor, necessitating an exit."
+          },
+          "… 1 more"
+        ]
+      },
+      "round": 2
+    }
+  ],
+  "decidedBy": "Risk approved in round 2",
+  "documentAvailable": false,
+  "documentConflicts": [],
+  "expectedRange": "Typical 1-month range: ₹1,051 – ₹1,290 (±10.2%)",
+  "financialHealth": "Unknown",
+  "followups": [
+    {
+      "agent": "FundamentalsAnalyst",
+      "answer": "The current P/E ratio and consensus earnings growth projections for INFY cannot be determined from the provided financial health data.",
+      "changesView": false,
+      "evidence": [
+        "financialHealth: Unknown"
+      ],
+      "from": "StrategyAgent",
+      "granted": true,
+      "instruction": "Calculate the current P/E ratio for INFY and provide the consensus earnings growth projections for the next two fiscal years to assess valuation.",
+      "question": "What are the current P/E ratio and earnings growth projections for INFY?",
+      "reasoning": "The user requires fundamental valuation data to evaluate INFY as a long-term holding, which is a critical component of the investment thesis.",
+      "round": 1
+    },
+    {
+      "agent": "FundamentalsAnalyst",
+      "answer": "The available facts do not contain the recent closing price, trailing twelve-month earnings per share, or the year-over-year revenue growth percentage for INFY…",
+      "changesView": false,
+      "evidence": [
+        "financialHealth: Unknown"
+      ],
+      "from": "StrategyAgent",
+      "granted": true,
+      "instruction": "Calculate the trailing twelve-month (TTM) P/E ratio for INFY using the most recent closing price and TTM earnings per share, and determine the year-over-year r…",
+      "question": "Can you provide the trailing twelve-month (TTM) P/E ratio and the latest quarterly revenue growth percentage for INFY?",
+      "reasoning": "The previous attempt failed to provide specific metrics. Providing these fundamental data points is essential for the StrategyAgent to assess valuation and gro…",
+      "round": 1
+    }
+  ],
+  "fundamentalsAvailable": false,
+  "fundamentalsPoints": [],
+  "fundamentalsSummary": "Unavailable: no fundamentals available for INFY.NS",
+  "headlineCount": 12,
+  "headlineLabels": [
+    {
+      "material": false,
+      "sentiment": "Neutral",
+      "source": "Univest",
+      "title": "Infosys Share Price News: Price Action and Valuation Check - Univest"
+    },
+    {
+      "material": true,
+      "sentiment": "Negative",
+      "source": "MarketBeat",
+      "title": "Infosys Ltd. $INFY Shares Sold by Robeco Institutional Asset Management B.V. - MarketBeat"
+    },
+    "… 10 more"
+  ],
+  "healthScore": null,
+  "holding": false,
+  "horizonYears": 7.0,
+  "keyRisks": [
+    "1. Technical Overextension: The stock is strongly overbought (RSI 77) and trading near its upper Bollinger Band, indicating a high risk of a short-term correct…",
+    "2. Lack of Fundamental Transparency: The absence of fundamental data makes it impossible to justify the current valuation or assess long-term viability.",
+    "… 2 more"
+  ],
+  "lastRun": null,
+  "ma20": 1052.0,
+  "ma50": 1086.18,
+  "macd": 22.92,
+  "macdHist": 20.43,
+  "macdSignal": 2.49,
+  "macdState": "Bullish",
+  "marketSummary": "INFY is exhibiting a strong upward trend, trading near its upper Bollinger Band with an overbought RSI of 76.7. Despite the elevated momentum and low volatilit…",
+  "materialHeadlines": [
+    "Infosys Ltd. $INFY Shares Sold by Robeco Institutional Asset Management B.V. - MarketBeat",
+    "Infosys Q2 results, dividend 2026 amount, record date announcement date-time: Preview, earnings schedule, history, yield - Livemint",
+    "… 3 more"
+  ],
+  "maxDrawdownPct": -20.79,
+  "maxPositionPct": 15.0,
+  "meta": {
+    "debateRounds": 2,
+    "degradedAgents": [],
+    "durationMs": 86987,
+    "failedAgents": [],
+    "followups": 2,
+    "llmAvailable": true,
+    "llmCalls": 21,
+    "llmFailures": 0,
+    "models": {
+      "gemini-3.1-flash-lite": 9,
+      "gemini-3.5-flash": 3,
+      "gemini-3.5-flash-lite": 9
+    },
+    "replans": 1,
+    "runId": "r_20261022_043338_945e02",
+    "status": "ok"
+  },
+  "momentum": "Strong up",
+  "newsAvailable": true,
+  "newsSentiment": "Neutral",
+  "newsSource": "google_rss",
+  "newsSummary": "The recent news headlines for Infosys show a mixed sentiment. While there are positive indicators such as sector rallies, expanded collaborations, and upbeat s…",
+  "observations": 126,
+  "pe": null,
+  "plan": {
+    "focus": "Does INFY present a solid fundamental growth and valuation profile to serve as a core long-term investment within a moderate-risk portfolio?",
+    "replans": 1
+  },
+  "portfolioAdvice": [
+    "Do not buy INFY as the current recommendation is SELL with a target price of ₹1,039.81 and ₹909.32.",
+    "Allocate 0.0 percent (0 units, ₹0.0) of your portfolio to this trade to respect single stock concentration limits.",
+    "… 1 more"
+  ],
+  "positionSizing": {
+    "amount": 0.0,
+    "positionPct": 0.0,
+    "units": 0
+  },
+  "preferenceNotes": [],
+  "priceDates": [
+    "2026-04-30",
+    "2026-05-04",
+    "… 118 more"
+  ],
+  "priceDisplay": "₹1,170.30",
+  "priceHistory": [
+    1156.77,
+    1143.65,
+    "… 118 more"
+  ],
+  "priceSource": "yfinance",
+  "profileSummary": "Intermediate investor with a moderate risk appetite and a long-term horizon managing an INR 300,000 portfolio.",
+  "reasoning": [
+    "The stock score of 32 is adjusted to SELL due to the blocking risk of technical overextension and lack of fundamental transparency.",
+    "RSI of 76.7 indicates extreme overbought conditions, increasing the probability of a sharp correction.",
+    "… 2 more"
+  ],
+  "recommendation": "SELL",
+  "recommendationClass": "sell",
+  "reportHeadline": "INFY: Technical Overextension and Missing Fundamentals Point to a Sell Recommendation",
+  "requestedTicker": "INFY",
+  "resistance": 1190.7,
+  "riskBreakdown": [
+    {
+      "label": "Volatility",
+      "points": 12
+    },
+    {
+      "label": "Momentum",
+      "points": 12
+    },
+    "… 2 more"
+  ],
+  "riskCapacityScore": 80,
+  "riskFactors": [
+    "Above-average volatility (2.2% daily)",
+    "Strongly overbought (RSI 77)",
+    "… 1 more"
+  ],
+  "riskLevel": "High",
+  "riskScore": 32,
+  "riskSummary": "The recommendation to invest in INFY is rejected due to a suitability gap and significant technical risks. The stock is currently overbought with an RSI of 77…",
+  "roe": null,
+  "rsi": 76.7,
+  "scorecard": {
+    "entry": {
+      "verdict": "Stretched",
+      "why": "Price is high in its recent range; entries after a run-up often see a pullback."
+    },
+    "redFlags": [
+      "Deeply overbought (RSI 77)"
+    ],
+    "scores": [
+      {
+        "name": "Momentum",
+        "score": 10,
+        "why": "Uptrend, +12.7% in a month, MACD bullish"
+      },
+      {
+        "name": "News",
+        "score": 5,
+        "why": "Neutral across 12 headlines"
+      }
+    ]
+  },
+  "sentimentScore": 0,
+  "sourcesTried": [
+    "yfinance"
+  ],
+  "stopLoss": 1300.79,
+  "suitabilityGap": -4,
+  "suitable": false,
+  "support": 992.0,
+  "symbolUsed": "INFY",
+  "targetPrice1": 1039.81,
+  "targetPrice2": 909.32,
+  "ticker": "INFY",
+  "toResistancePct": 1.74,
+  "toSupportPct": -15.24,
+  "topHeadlines": [
+    "Infosys Share Price News: Price Action and Valuation Check - Univest",
+    "Infosys Ltd. $INFY Shares Sold by Robeco Institutional Asset Management B.V. - MarketBeat",
+    "… 1 more"
+  ],
+  "trend": "Uptrend",
+  "userType": "Intermediate Investor",
+  "volatility": 2.23,
+  "volumeHistory": [
+    12205669,
+    7735811,
+    "… 118 more"
+  ],
+  "volumeLevel": "Normal",
+  "volumeRatio": 1.49
+}
+```
 <!-- /sample:analysis-response -->
 
 When no price source works the response is HTTP 502:
@@ -130,7 +440,128 @@ Schema: [`schemas/portfolio_response.schema.json`](../schemas/portfolio_response
 Sample:
 
 <!-- sample:portfolio-response -->
-To be filled with a real capture from the live deployment (`scripts/capture_run.py --portfolio`, then `scripts/sample_to_docs.py`), tracked in issue #15.
+Real output, shortened for reading from [`docs/samples/portfolio_response.json`](../docs/samples/portfolio_response.json) (run `r_20261022_043713_7b0f17`, 1 of 1 decisions by the model). Strings over 160 characters and lists over 2 items are cut; the file itself is unedited.
+
+```json
+{
+  "advice": [
+    "TCS is down 26.1% — review if fundamentals have changed.",
+    "INFY is down 23.0% — review if fundamentals have changed.",
+    "… 3 more"
+  ],
+  "diversificationScore": 70,
+  "investmentStyle": "Diversified Long-Term Investor",
+  "livePriced": 8,
+  "meta": {
+    "llmAvailable": true,
+    "llmCalls": 1,
+    "llmFailures": 0,
+    "runId": "r_20261022_043713_7b0f17"
+  },
+  "recommendations": [
+    {
+      "action": "REVIEW",
+      "note": "Down 26.1%; check the reason you bought still holds.",
+      "ticker": "TCS"
+    },
+    {
+      "action": "REVIEW",
+      "note": "Down 23.0%; check the reason you bought still holds.",
+      "ticker": "INFY"
+    },
+    "… 6 more"
+  ],
+  "review": {
+    "actions": [
+      "Review investment theses for deeply negative holdings like ITC and TCS.",
+      "Monitor banking sector concentration which forms nearly 30.4% of the portfolio.",
+      "… 2 more"
+    ],
+    "degraded": false,
+    "holdings": [
+      {
+        "action": "REVIEW",
+        "reason": "Down 26.1% with an elevated RSI of 86.24, warranting a check on the original thesis.",
+        "ticker": "TCS"
+      },
+      {
+        "action": "REVIEW",
+        "reason": "Down 23.0% despite an uptrend and high RSI of 76.7, requiring a fundamental check.",
+        "ticker": "INFY"
+      },
+      "… 6 more"
+    ],
+    "summary": "The portfolio shows an overall loss of 12.8% with moderate diversification across six sectors, though several major holdings are currently in a downtrend. Risk…"
+  },
+  "riskScore": 20,
+  "sectorAllocation": {
+    "Banking": 30.4,
+    "FMCG": 15.2,
+    "IT": 15.9,
+    "Infra": 14.1,
+    "Oil & Gas": 11.6,
+    "Pharma": 12.7
+  },
+  "skippedRows": [],
+  "stocks": [
+    {
+      "buyPrice": 3400.0,
+      "costBasis": 20400.0,
+      "currentPrice": 2512.4,
+      "currentValue": 15074.4,
+      "history": [
+        2385.32,
+        2433.66,
+        "… 58 more"
+      ],
+      "isHighVol": false,
+      "pe": null,
+      "pnl": -5325.6,
+      "pnlPct": -26.11,
+      "priceSource": "live (yfinance)",
+      "quantity": 6.0,
+      "reason": "Down 26.1%; check the reason you bought still holds.",
+      "recommendation": "REVIEW",
+      "rsi": 86.24,
+      "sector": "IT",
+      "ticker": "TCS",
+      "trend": "Uptrend",
+      "volatility": 2.2,
+      "weight": 7.4
+    },
+    {
+      "buyPrice": 1520.0,
+      "costBasis": 22800.0,
+      "currentPrice": 1170.3,
+      "currentValue": 17554.5,
+      "history": [
+        1105.7,
+        1155.6,
+        "… 58 more"
+      ],
+      "isHighVol": false,
+      "pe": null,
+      "pnl": -5245.5,
+      "pnlPct": -23.01,
+      "priceSource": "live (yfinance)",
+      "quantity": 15.0,
+      "reason": "Down 23.0%; check the reason you bought still holds.",
+      "recommendation": "REVIEW",
+      "rsi": 76.7,
+      "sector": "IT",
+      "ticker": "INFY",
+      "trend": "Uptrend",
+      "volatility": 2.23,
+      "weight": 8.6
+    },
+    "… 6 more"
+  ],
+  "totalCost": 235100.0,
+  "totalPnL": -30038.8,
+  "totalPnLPct": -12.78,
+  "totalValue": 205061.2
+}
+```
 <!-- /sample:portfolio-response -->
 
 ### 2.3 Execution trace — one message per line
