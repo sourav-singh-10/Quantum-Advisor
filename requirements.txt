@@ -3,7 +3,7 @@ flask-cors==6.0.5
 gunicorn==23.0.0
 requests==2.34.2
 pandas==3.0.6
-numpy==2.5.3
+numpy==2.5.4
 openpyxl==3.1.5
 pydantic==2.14.1
 google-genai==2.31.0
